@@ -1,5 +1,5 @@
-import { GameObject } from "../../engine/src/gameObject.js";
-import { Coord, angleDegrees, distanceBetweenTwoPoints, angleRadians } from "../../engine/src/utils.js";
+import { GameObject } from "../../../engine/src/gameObject.js";
+import { Coord, distanceBetweenTwoPoints, angleRadians } from "../../../engine/src/utils.js";
 import { environment as env } from "../environment.js";
 
 export class Creature extends GameObject{

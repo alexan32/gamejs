@@ -8,7 +8,7 @@ export let input = new Input(canvas);
 let ctx;
 let deltaTime;
 let oldTimeStamp;
-
+window.scene = null;
 window.onload = init();
 
 console.log("Hello from engine!");

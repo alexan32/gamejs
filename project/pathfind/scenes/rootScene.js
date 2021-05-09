@@ -1,11 +1,11 @@
 // engine imports
-import { GameObject, objectRegister } from "./engine/src/gameObject.js";
-import { Coord } from "./engine/src/utils.js";
-import { input, canvas } from "./engine/main.js";
+import { GameObject, objectRegister } from "../../../engine/src/gameObject.js"
+import { Coord } from "../../../engine/src/utils.js";
+import { input, canvas } from "../../../engine/main.js";
 // project imports
-import { environment as env } from "./project/environment.js"
-import { CollisionMap } from "./project/objects/map.js";
-import { Creature, NavigationGraphics } from "./project/objects/creature.js";
+import { environment as env } from "../environment.js"
+import { CollisionMap } from "../objects/map.js";
+import { Creature, NavigationGraphics } from "../objects/creature.js";
 
 //declarations here
 let world;
@@ -22,7 +22,6 @@ let selectedPlayer = null;
 // A scene is a collection of game objects, and contains all the information
 // needed to initialize them. it has an init function with returns a promise.
 // the promsie should resolve when all game objects are loaded.
-window.env = env;
 window.scene = {
     "init": init,
     "destroy": destroy

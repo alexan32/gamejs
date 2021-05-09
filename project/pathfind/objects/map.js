@@ -1,4 +1,4 @@
-import { Coord, distanceBetweenTwoPoints } from "../../engine/src/utils.js";
+import { Coord, distanceBetweenTwoPoints } from "../../../engine/src/utils.js";
 
 export class CollisionMap{
 
