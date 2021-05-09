@@ -28,6 +28,7 @@ export var scene = {
     objects: []
 };
 
+
 // resolve true when all objects are loaded
 function init() {
     return new Promise(async resolve => {
