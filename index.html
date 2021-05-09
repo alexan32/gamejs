@@ -7,10 +7,12 @@
                 border: 1px solid black;
             }
         </style>
-        <script type="module" src="engine/main.js"></script>
+        <script type="module">window.scene = null;</script>
+        <script type="module" charset="UTF-8" src="engine/main.js"></script>
+        <script type="module" charset="UTF-8" src="rootScene.js";></script>
     </head>
 
     <body>
-        <canvas id="gameScreen"></canvas>
+        <canvas id="gameScreen" width="800" height="600"></canvas>
     </body>
 </html>

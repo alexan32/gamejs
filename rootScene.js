@@ -22,10 +22,10 @@ let selectedPlayer = null;
 // A scene is a collection of game objects, and contains all the information
 // needed to initialize them. it has an init function with returns a promise.
 // the promsie should resolve when all game objects are loaded.
-export var scene = {
+window.env = env;
+window.scene = {
     "init": init,
-    "destroy": destroy,
-    objects: []
+    "destroy": destroy
 };
 
 
