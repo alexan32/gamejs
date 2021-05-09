@@ -1,15 +1,22 @@
+// engine imports
 import { GameObject, objectRegister } from "./engine/src/gameObject.js";
+import { Coord } from "./engine/src/utils.js";
 import { input, canvas } from "./engine/main.js";
+// project imports
 import { environment as env } from "./project/environment.js"
 import { CollisionMap } from "./project/objects/map.js";
+import { Creature, NavigationGraphics } from "./project/objects/creature.js";
 
 //declarations here
 let world;
+
 let player1;
-let player2;
-let player3;
 let cursor;
+let navigationGraphics;
+
 let playerList;
+let eventThrottle = false;
+let selectedPlayer = null;
 
 // A scene is a collection of game objects, and contains all the information
 // needed to initialize them. it has an init function with returns a promise.
@@ -23,23 +30,20 @@ export var scene = {
 // resolve true when all objects are loaded
 function init() {
     return new Promise(async resolve => {
-        // playerList = [];
-        // world = buildWorld();
-        // player1 = buildPlayer(2, 2);
-        // player2 = buildPlayer(2, 4);
-        // player3 = buildPlayer(2, 6);
-        // playerList = [player1, player2, player3];
-        // cursor = buildCursor();
-        // canvas.addEventListener("mousedown", playerSelect);
-        var test = new CollisionMap();
-        // test.logMap(test.map);
-        test.getAvailableMoves(1,1,4);
-        // console.log(test.getNeighbors(0, 0));
-        console.log(test.getNeighbors(1, 1));
-        // console.log(test.getNeighbors(2, 2));
+
+        world = buildWorld();
+
+        player1 = new Creature(6, 6, 5);
+        playerList = [player1];
+
+        cursor = buildCursor();
+
+        navigationGraphics = new NavigationGraphics(cursor);
+
+        canvas.addEventListener("mousedown", onCanvasClick);
+        canvas.addEventListener("mousemove", onMouseMove);
 
         objectRegister.buildRenderList();
-
         resolve();
     });
 }
@@ -50,32 +54,52 @@ function destroy() {
 
 }
 
-function playerSelect(){
+function onCanvasClick(){
+    // handle player selection
+    var playerWasSelected = false;
     for(let i=0; i<playerList.length; i++){
         let player = playerList[i];
-        player.selected = (player.position.x == cursor.position.x && player.position.y == cursor.position.y);
+        if(player.position.x == cursor.position.x && player.position.y == cursor.position.y){
+            playerWasSelected = true;
+            player.selected = true;
+            selectedPlayer = player;
+            navigationGraphics.movement = player.calculateMovement(buildCollisionMap());
+            console.log(navigationGraphics.movement);
+        }
+    }
+    // handle player pathfinding
+    if(selectedPlayer != null){
+        navigationGraphics.movement.forEach(c => {
+            if(cursor.position.x == c.x && cursor.position.y == c.y){
+                var path = buildCollisionMap().astar(selectedPlayer.position.x, selectedPlayer.position.y, cursor.position.x, cursor.position.y)
+                path.shift();
+                selectedPlayer.path = path
+            }
+        });
+    }
+    // clear navigation graphics
+    if(!playerWasSelected){
+        if(selectedPlayer != null){
+            selectedPlayer.selected = false;
+        }
+        selectedPlayer = null;
+        navigationGraphics.path = [];
+        navigationGraphics.movement = [];
     }
 }
 
-function buildPlayer(x, y){
-    var player = new GameObject();
-    player.position = new Coord(x, y);
-    player.selected = false;
-    player.speed = 5;
+const throttle = ms => {eventThrottle = true;setTimeout(()=>{eventThrottle = false;}, ms);}
 
-    player.draw = function(ctx){
-        ctx.fillStyle = "red";
-        ctx.fillRect(player.position.x * env.tileSize + 4, player.position.y * env.tileSize + 4, env.tileSize - 8, env.tileSize - 8);
-        if(player.selected){
-            ctx.lineSize = 3;
-            ctx.strokeStyle = "blue";
-            ctx.beginPath();
-            ctx.rect(player.position.x * env.tileSize, player.position.y * env.tileSize, env.tileSize, env.tileSize);
-            ctx.stroke();
-        }
+function onMouseMove(){
+    if(selectedPlayer != null && !eventThrottle){
+        selectedPlayer.availableMoves.forEach(c =>{
+            if(cursor.position.x == c.x && cursor.position.y == c.y){
+                throttle(100);
+                navigationGraphics.path = buildCollisionMap().astar(selectedPlayer.position.x, selectedPlayer.position.y, cursor.position.x, cursor.position.y);
+                // console.log(navigationGraphics.path);
+            }
+        });
     }
-
-    return player;
 }
 
 function buildWorld() {
@@ -137,13 +161,22 @@ function buildCursor(){
     return cursor;
 }
 
-class Coord{
-    constructor(x=0, y=0){
-        this.x = x;
-        this.y = y;
+function buildCollisionMap(){
+    var arr = JSON.parse(JSON.stringify(world.map));
+    for(var y=0; y<arr.length; y++){
+        for(var x=0; x<arr[y].length; x++){
+            switch(arr[y][x]){
+                case 0:
+                    arr[y][x] = 99;
+                    break;
+                default:
+                    arr[y][x] = -1;
+                    break;
+            }
+        }
     }
-
-    toString(){
-        return `${this.x},${this.y}`;
+    for(var player of playerList){
+        arr[player.position.y][player.position.x] = -1;
     }
+    return new CollisionMap(arr);
 }

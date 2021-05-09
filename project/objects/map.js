@@ -8,25 +8,101 @@ export class CollisionMap{
     constructor(arr){
         this.map = arr;
         // this.map = [
-        //     [-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1],
-        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],
-        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],
-        //     [-1,  99,  -1,  99,  99,  99,  99,  99,  99,  -1],
-        //     [-1,  99,  -1,  -1,  -1,  99,  99,  99,  99,  -1],
-        //     [-1,  99,  99,  99,  -1,  99,  99,  99,  99,  -1],
-        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],
-        //     [-1,  99,  99,  99,  -1,  99,  99,  99,  99,  -1],
-        //     [-1,  99,  99,  99,  -1,  99,  99,  99,  99,  -1],
-        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],
-        //     [-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1],
+        //     //0   1    2    3    4    5    6    7    8    9
+        //     [-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1],  // 0
+        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],  // 1
+        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],  // 2
+        //     [-1,  99,  -1,  99,  99,  99,  99,  99,  99,  -1],  // 3
+        //     [-1,  99,  -1,  -1,  -1,  99,  99,  99,  99,  -1],  // 4
+        //     [-1,  99,  99,  99,  -1,  99,  99,  99,  99,  -1],  // 5
+        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],  // 6
+        //     [-1,  99,  99,  99,  -1,  99,  99,  99,  99,  -1],  // 7 
+        //     [-1,  99,  99,  99,  -1,  99,  99,  99,  99,  -1],  // 8
+        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],  // 9
+        //     [-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1],  // 10
         // ];
         this.copy = JSON.parse(JSON.stringify(this.map));
-        // this.logMap(this.map);
         this.dimensionY = this.map.length;
         this.dimensionX = this.map[0].length;
     }
 
-    astar(x1, y1, x2, y2){};
+
+    astar(x1, y1, x2, y2){
+        var buildNode = (x, y, g, h, parent)=>{return {"x":x, "y":y, "g":g, "h":h, "f":g+h, "parent":parent};}
+        var open = [buildNode(x1, y1, 0, 0, null)];
+        var closed = [];
+        var goalNode = null;
+
+        var count = 0;
+        while(open.length > 0 && goalNode == null && count < 20){
+            count ++;
+
+            //get node with least f in open list
+            var smallestF = 9999;
+            var smallestIndex = 0;
+            for(var i=0; i<open.length; i++){
+                var f = open[i].g + open[i].h;
+                if(f < smallestF){
+                    smallestF = f;
+                    smallestIndex = i;
+                }
+            }
+            var current = open.splice(smallestIndex, 1)[0];
+            var successors = this.getNeighbors(current.x, current.y);
+
+            // console.log(`open length: ${open.length}. closed length: ${closed.length}. smallest f: ${smallestF}`);
+            for(var i=0; i<successors.length; i++){
+
+                var successor = successors[i];
+                // g = movement cost from starting point to given square
+                // h = estimated movement cost to move from square to final destination
+                // f = g + h
+                var g = current.g + Math.round(distanceBetweenTwoPoints(current.x, current.y, successor.x, successor.y) * 10) / 10;
+                var h = Math.round(distanceBetweenTwoPoints(successor.x, successor.y, x2, y2)* 10) / 10;
+                var f = g + h;
+
+                // if node is goal, done. else find f.
+                if(successor.x == x2 && successor.y == y2){
+                    goalNode = buildNode(successor.x, successor.y, g, h, current);
+                    // console.log("goal found!");
+                    break;
+                }
+                //if node with same position in OPEN and has lower f, skip
+                var skip = false;
+                for(let i=0; i<open.length; i++){
+                    if(open[i].x == successor.x && open[i].y == successor.y && open[i].f < f){
+                        skip = true;
+                        break;
+                    }
+                }
+                //if node with same position in CLOSED with lower f, skip. else add to OPEN
+                if(!skip){
+                    for(let i=0; i<closed.length; i++){
+                        if(closed[i].x == successor.x && closed[i].y == successor.y && closed[i].f < f){
+                            skip = true;
+                            break;
+                        }
+                    }
+                }
+                if(!skip){
+                    open.push(buildNode(successor.x, successor.y, g, h, current))
+                }
+            }
+            // add current node to closed
+            closed.push(current);
+        }
+
+        var path = [];
+        if(goalNode != null){
+            var current = goalNode;
+            var done = false;
+            while(current != null){
+                path.unshift(new Coord(current.x, current.y));
+                current = current.parent;
+            }
+        }
+        return path;
+    };
 
     getAvailableMoves(x, y, movement){
         var seen = [new Coord(x, y).toString()];
@@ -50,7 +126,6 @@ export class CollisionMap{
             visited.push(currentNode);
         }
         this.logMap(this.copy);
-        console.log(visited)
         return visited;
     };
 
