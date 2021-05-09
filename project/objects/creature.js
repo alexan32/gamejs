@@ -26,7 +26,6 @@ export class Creature extends GameObject{
             ctx.strokeStyle = "blue";
             ctx.beginPath();
             ctx.rect(this.position.x * env.tileSize, this.position.y * env.tileSize, env.tileSize, env.tileSize);
-            ctx.stroke();
         }
     }
 
@@ -52,7 +51,7 @@ export class Creature extends GameObject{
     }
 
     calculateMovement(collisionMap){
-        this.availableMoves = collisionMap.getAvailableMoves(this.position.x, this.position.y, 5);
+        this.availableMoves = collisionMap.getAvailableMoves(this.position.x, this.position.y, this.movement);
         return this.availableMoves;
     }
 }
@@ -76,13 +75,22 @@ export class NavigationGraphics extends GameObject{
             ctx.stroke();
         }
         ctx.strokeStyle = "black";
-        for(var i=0; i<this.path.length -1; i++){
-            var start = this.path[i];
-            var end = this.path[i+1];
-            ctx.beginPath();
-            ctx.moveTo(start.x * env.tileSize + env.tileSize/2, start.y * env.tileSize + env.tileSize/2);
-            ctx.lineTo(end.x * env.tileSize + env.tileSize/2, end.y * env.tileSize + env.tileSize/2);
-            ctx.stroke();
+        if(this.path.length > 0){
+            for(var i=0; i<this.path.length -1; i++){
+                var start = this.path[i];
+                var end = this.path[i+1];
+                ctx.beginPath();
+                ctx.moveTo(start.x * env.tileSize + env.tileSize/2, start.y * env.tileSize + env.tileSize/2);
+                ctx.lineTo(end.x * env.tileSize + env.tileSize/2, end.y * env.tileSize + env.tileSize/2);
+                ctx.stroke();
+                if(i+1 == this.path.length - 1){
+                    ctx.fillStyle = "yellow"
+                    ctx.font ="16px Arial";
+                    var dist = (this.path.length == 16) ? 15 : this.path.length;
+                    ctx.fillText(dist.toString(), end.x * env.tileSize, end.y * env.tileSize);
+                    ctx.stroke();
+                }
+            }
         }
     }
 

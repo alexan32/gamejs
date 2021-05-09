@@ -33,9 +33,7 @@ export class CollisionMap{
         var closed = [];
         var goalNode = null;
 
-        var count = 0;
-        while(open.length > 0 && goalNode == null && count < 20){
-            count ++;
+        while(open.length > 0 && goalNode == null){
 
             //get node with least f in open list
             var smallestF = 9999;
@@ -64,7 +62,7 @@ export class CollisionMap{
                 // if node is goal, done. else find f.
                 if(successor.x == x2 && successor.y == y2){
                     goalNode = buildNode(successor.x, successor.y, g, h, current);
-                    // console.log("goal found!");
+                    console.log("goal found! distance: ", goalNode.g);
                     break;
                 }
                 //if node with same position in OPEN and has lower f, skip
@@ -116,8 +114,9 @@ export class CollisionMap{
             if(currentValue <= movement + 0.001){
                 var neighbors = this.getNeighbors(currentNode.x, currentNode.y);
                 for(var neighbor of neighbors){
-                    var dist = (distanceBetweenTwoPoints(currentNode.x, currentNode.y, neighbor.x, neighbor.y) > 1.0) ? 1.4 : 1.0;
-                    if(this.copy[neighbor.y][neighbor.x] > currentValue + dist && currentValue + dist < movement + 0.001){
+                    // Math.round(distanceBetweenTwoPoints(current.x, current.y, successor.x, successor.y) * 10) / 10;
+                    var dist = Math.round(distanceBetweenTwoPoints(currentNode.x, currentNode.y, neighbor.x, neighbor.y) * 10) / 10;
+                    if(this.copy[neighbor.y][neighbor.x] > currentValue + dist && currentValue + dist <= movement){
                         this.copy[neighbor.y][neighbor.x] = currentValue + dist;
                         seen.push(neighbor.toString());
                     }
@@ -180,7 +179,7 @@ export class CollisionMap{
         var asString = "";
         for(let y=0; y<arr.length; y++){
             for(let x=0; x<arr[y].length; x++){
-                var str = arr[y][x].toString();
+                var str = (Math.round(arr[y][x] * 10) / 10).toString();
                 var spc = "";
                 switch(str.length){
                     case 1: spc = "    "
