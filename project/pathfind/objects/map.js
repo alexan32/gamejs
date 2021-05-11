@@ -2,39 +2,24 @@ import { Coord, distanceBetweenTwoPoints } from "../../../engine/src/utils.js";
 
 export class CollisionMap{
 
-    //takes an array. 
-    // -1:  collision.
-    // 99: standin for infinity.
+    /* Takes a 2D array, where -1 indicates a "collision" or unreachable location, and all other values set to a Max value
+       such as 999999 as a stand in for infinity. This array should only include terrain collisions. Collisions due to 
+       a creature or a temporary effect occupying a space should be applied before pathfinding via the 'populate()' function.
+    */
     constructor(arr){
         this.map = arr;
-        // this.map = [
-        //     //0   1    2    3    4    5    6    7    8    9
-        //     [-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1],  // 0
-        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],  // 1
-        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],  // 2
-        //     [-1,  99,  -1,  99,  99,  99,  99,  99,  99,  -1],  // 3
-        //     [-1,  99,  -1,  -1,  -1,  99,  99,  99,  99,  -1],  // 4
-        //     [-1,  99,  99,  99,  -1,  99,  99,  99,  99,  -1],  // 5
-        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],  // 6
-        //     [-1,  99,  99,  99,  -1,  99,  99,  99,  99,  -1],  // 7 
-        //     [-1,  99,  99,  99,  -1,  99,  99,  99,  99,  -1],  // 8
-        //     [-1,  99,  99,  99,  99,  99,  99,  99,  99,  -1],  // 9
-        //     [-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1],  // 10
-        // ];
         this.copy = JSON.parse(JSON.stringify(this.map));
         this.dimensionY = this.map.length;
         this.dimensionX = this.map[0].length;
     }
 
-
+    /* A* Algorithm implementation. Returns path to goal(x2, y2) from start(x1, y1) as list of coordinates*/
     astar(x1, y1, x2, y2){
         var buildNode = (x, y, g, h, parent)=>{return {"x":x, "y":y, "g":g, "h":h, "f":g+h, "parent":parent};}
         var open = [buildNode(x1, y1, 0, 0, null)];
         var closed = [];
         var goalNode = null;
-
         while(open.length > 0 && goalNode == null){
-
             //get node with least f in open list
             var smallestF = 9999;
             var smallestIndex = 0;
@@ -47,10 +32,8 @@ export class CollisionMap{
             }
             var current = open.splice(smallestIndex, 1)[0];
             var successors = this.getNeighbors(current.x, current.y);
-
             // console.log(`open length: ${open.length}. closed length: ${closed.length}. smallest f: ${smallestF}`);
             for(var i=0; i<successors.length; i++){
-
                 var successor = successors[i];
                 // g = movement cost from starting point to given square
                 // h = estimated movement cost to move from square to final destination
@@ -58,7 +41,6 @@ export class CollisionMap{
                 var g = current.g + Math.round(distanceBetweenTwoPoints(current.x, current.y, successor.x, successor.y) * 10) / 10;
                 var h = Math.round(distanceBetweenTwoPoints(successor.x, successor.y, x2, y2)* 10) / 10;
                 var f = g + h;
-
                 // if node is goal, done. else find f.
                 if(successor.x == x2 && successor.y == y2){
                     goalNode = buildNode(successor.x, successor.y, g, h, current);
@@ -89,7 +71,6 @@ export class CollisionMap{
             // add current node to closed
             closed.push(current);
         }
-
         var path = [];
         if(goalNode != null){
             var current = goalNode;
@@ -102,6 +83,8 @@ export class CollisionMap{
         return path;
     };
 
+
+    /* Returns a list with a Coord for each node that can be reached from position x,y with a set movement*/
     getAvailableMoves(x, y, movement){
         var seen = [new Coord(x, y).toString()];
         var visited = [];
@@ -128,6 +111,8 @@ export class CollisionMap{
         return visited;
     };
 
+
+    /* Returns the neighbors (aka successors) of a node positioned at x,y */
     getNeighbors(x, y){
         var neighbors = [];
         if(this.getNode(x,y) == null){
@@ -168,6 +153,8 @@ export class CollisionMap{
         return neighbors;
     };
 
+
+    /*Safe retrieval of node at x,y position. Returns null if out of bounds.*/
     getNode(x, y){
         if((x < 0 || x > this.dimensionX) || (y < 0 || y > this.dimensionY)){
             return null;
@@ -175,6 +162,20 @@ export class CollisionMap{
         return this.copy[y][x];
     };
 
+
+    /*  Use this to update the copy with variable collisions before pathfinding.
+        Takes an array of Coords as input.
+    */
+    populate(arr){
+        this.copy = JSON.parse(JSON.stringify(this.map));
+        arr.forEach(coord => {
+            this.copy[coord.y][coord.x] = -1;
+        });
+
+    }
+
+
+    /* logs map for debug purposes.*/
     logMap(arr){
         var asString = "";
         for(let y=0; y<arr.length; y++){
@@ -195,7 +196,7 @@ export class CollisionMap{
             }
             asString += "\n";
         }
-        console.log(asString);
+        console.debug(asString);
     }
 
 }
