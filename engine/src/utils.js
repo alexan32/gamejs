@@ -32,3 +32,36 @@ export class Coord{
         return `${this.x},${this.y}`;
     }
 }
+
+class Array2D{
+    constructor(data){
+        this.data = data;
+    }
+
+    get(x, y){
+        if(y >= 0 && y < this.data.length){
+            if(x >=0 && x < this.data[y].length){
+                return this.data[y][x];
+            }
+        }
+        return null;
+    }
+}
+
+export function readJsonFile(pathToFile){
+    console.log("Loading json file from path: ", pathToFile);
+    var request = new XMLHttpRequest();
+    request.open("GET", pathToFile, false);
+    request.send(null);
+    return JSON.parse(request.responseText);
+}
+
+export function loadImage(pathToResource){
+    return new Promise(resolve => {
+        var img = new Image();
+        img.src = pathToResource;
+        img.addEventListener('load', ()=>{
+            resolve(img);
+        });
+    })
+}
