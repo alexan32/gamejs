@@ -1,3 +1,4 @@
+import { GameObject } from "../../../engine/src/gameObject.js";
 
 /*  A TileSet is a canvas that holds an image meant to be broken up into
     subregions with a width of tileW and a height of tileH
@@ -40,6 +41,7 @@ export class TileSet{
         cnvs.width = this.tileW;
         cnvs.height = this.tileH;
         var ctx = cnvs.getContext("2d");
+        ctx.imageSmoothingEnabled = false;
         ctx.drawImage(this.sourceImage, sx, sy, this.tileW, this.tileH, 0, 0, this.tileW, this.tileH);
         return cnvs;
     }
@@ -62,6 +64,7 @@ export class TiledImage{
         cnvs.height = map.length * tileset.tileH;
         this.canvas = cnvs;
         this.ctx = this.canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = false;
         this.buildImage(map, tileset);
     }
 
@@ -88,65 +91,41 @@ export class TiledImage{
 }
 
 
-//prevents view from moving off the map
-export var ViewFrame = {
+/*  An animation is series of frames that are rendered in succession. 
+*/
+export class SpriteAnimation{
 
-    boundary: {
-        left: 0,
-        right: 0,
-        bottom: 0,
-        top: 0
-    },
-    //top left pixel coords of view
-    position: {
-        x: 0,
-        y: 0
-    },
-    xMin: null,
-    xMax: null,
-    yMin: null,
-    yMax: null,
-    targetObject: null,
-
-    //mapWidth & mapHeight measured in tiles
-    setBoundary: function(mapWidth, mapHeight){
-        console.log("init ViewFrame with mapWidth:", mapWidth, " and mapHeight: ", mapHeight);
-        this.boundary.right = (mapWidth * env.tileSize) - env.viewWidth;
-        this.boundary.bottom = (mapHeight * env.tileSize) - env.viewHeight;
-        console.log(this.boundary);
-    },
-
-    centerOnCoords: function(posX, posY){
-        this.position = this.sanitize(posX + 0.5*env.tileSize - 0.5*env.viewWidth, posY + 0.5*env.tileSize - 0.5*env.viewHeight);
-    },
-
-    //check boundaries, prevent float graphical bugs
-    sanitize: function(posX, posY){
-        if(posX < this.boundary.left){
-            posX = this.boundary.left;
-        }else if(posX > this.boundary.right){
-            posX = this.boundary.right;
-        }
-        if(posY < this.boundary.top){
-            posY = this.boundary.top;
-        }else if(posY > this.boundary.bottom){
-            posY = this.boundary.bottom;
-        }
-        return {x: Math.floor(posX), y: Math.floor(posY)};
-    },
-
-    update(delta){
-        if(this.targetObject){
-            let {x, y} = this.targetObject.getPixelCoords();
-            this.centerOnCoords(x, y);
-        }
-        this.xMin = Math.floor(this.position.x / env.tileSize);
-        this.xMax = this.xMin + env.viewWidth / env.tileSize;
-        this.yMin = Math.floor(this.position.y / env.tileSize);
-        this.yMax = this.yMin + env.viewHeight / env.tileSize;
-    },
-
-    setTargetObject(x){
-        this.targetObject = x;
+    /*  frameRate: the time given to each frame in seconds
+    */
+    constructor(frameRate){
+        this.frameRate = frameRate;
+        this.frames = [];
+        this.lastIncrement = 0;
+        this.currentFrame = 0;
     }
+
+    setFrame(i){
+        this.currentFrame = i;
+        this.lastIncrement = 0;
+    }
+
+    incrementFrame(increment=1){
+        this.currentFrame += increment;
+        if(this.currentFrame >= this.frames.length){
+            this.currentFrame = 0;
+        }
+    }
+
+    update(dt){
+        var currentTime = performance.now();
+        if(currentTime >= this.lastIncrement + this.frameRate){
+            this.lastIncrement = currentTime;
+            this.incrementFrame();
+        }
+    }
+
+    getCurrentFrame(){
+        return this.frames[this.currentFrame];
+    }
+
 }

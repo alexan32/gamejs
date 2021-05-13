@@ -42,7 +42,8 @@ function draw(ctx){
 
 
 async function init(){
-    ctx = canvas.getContext('2d');      
+    ctx = canvas.getContext('2d');     
+    ctx.imageSmoothingEnabled = false; 
 
     input = new Input(canvas);
 
