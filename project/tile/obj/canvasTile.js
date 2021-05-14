@@ -1,4 +1,4 @@
-import { GameObject } from "../../../engine/src/gameObject.js";
+import { EventEmitter } from "../../../engine/src/utils.js";
 
 /*  A TileSet is a canvas that holds an image meant to be broken up into
     subregions with a width of tileW and a height of tileH
@@ -104,6 +104,8 @@ export class SpriteAnimation{
         this.oscillate = oscillate;
         this.increment = 1;
         this.frameRate = 100;
+        this.isPlayOnce = false;
+        this.eventHandler = new EventEmitter();
     }
 
     update(dt){
@@ -118,6 +120,7 @@ export class SpriteAnimation{
         if(this.oscillate && (this.currentFrame == this.frames.length - 1 || this.currentFrame == 0)){
             this.increment *= -1;
         }else if(this.currentFrame >= this.frames.length){
+            this.eventHandler.trigger("lastFrame",{frameRate: this.frameRate, frameCount: this.frames.length});
             this.currentFrame = 0;
         }
         this.timePassed = 0;

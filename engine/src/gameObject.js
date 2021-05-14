@@ -44,7 +44,7 @@ export var objectRegister = {
 //default contructor registers the game object with the objectRegister. 
 //update: all game objects must have an update function
 //draw: all game objects must have a draw function
-export class GameObject {
+export class GameObject{
 
     constructor() {
         this.id = uuidv4();

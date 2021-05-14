@@ -51,7 +51,9 @@ function init() {
             w: [left, walkLeft, attackLeft],
             e: [right, walkRight, attackRight]
         }
-
+        walkDown.eventHandler.on("lastFrame", event=>{
+            console.log("last!");
+        })
         let local = new GameObject();
         local.x = 32;
         local.y = 32;

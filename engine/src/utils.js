@@ -21,33 +21,6 @@ export function angleDegrees(x1, y1, x2, y2){
     return Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
 }
 
-
-export class Coord{
-    constructor(x=0, y=0){
-        this.x = parseInt(x);
-        this.y = parseInt(y);
-    }
-
-    toString(){
-        return `${this.x},${this.y}`;
-    }
-}
-
-class Array2D{
-    constructor(data){
-        this.data = data;
-    }
-
-    get(x, y){
-        if(y >= 0 && y < this.data.length){
-            if(x >=0 && x < this.data[y].length){
-                return this.data[y][x];
-            }
-        }
-        return null;
-    }
-}
-
 export function readJsonFile(pathToFile){
     console.log("Loading json file from path: ", pathToFile);
     var request = new XMLHttpRequest();
@@ -64,4 +37,54 @@ export function loadImage(pathToResource){
             resolve(img);
         });
     })
+}
+
+export class Coord{
+    constructor(x=0, y=0){
+        this.x = parseInt(x);
+        this.y = parseInt(y);
+    }
+
+    toString(){
+        return `${this.x},${this.y}`;
+    }
+}
+
+export class Array2D{
+    constructor(data){
+        this.data = data;
+    }
+
+    get(x, y){
+        if(y >= 0 && y < this.data.length){
+            if(x >=0 && x < this.data[y].length){
+                return this.data[y][x];
+            }
+        }
+        return null;
+    }
+}
+
+export class EventEmitter{
+
+    constructor(){
+        this.events = {};
+    }
+
+    on(eventName, callback){
+        if(this.events[eventName]){
+            this.events[eventName].push(callback);
+        }else{
+            this.events[eventName] = [callback];
+        }
+    }
+
+    trigger(eventName, ...args){
+        if(this.events[eventName]){
+            this.events[eventName].forEach(cb=>{
+                cb.apply(null, args);
+            });
+        }
+    }
+
 }
