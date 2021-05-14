@@ -14,7 +14,8 @@ export class TileSet{
         this.tileW = tileW;
         this.tileH = tileH;
         this.numColumns = sourceImage.width/tileW;
-        this.numTiles = this.numColumns * (sourceImage.height/tileH);
+        this.numRows = sourceImage.height/tileH
+        this.numTiles = this.numColumns * this.numRows;
         this.tiles = [];
 
         for(let i=0; i<this.numTiles; i++){
@@ -63,8 +64,9 @@ export class TiledImage{
         cnvs.width = map[0].length * tileset.tileW;
         cnvs.height = map.length * tileset.tileH;
         this.canvas = cnvs;
-        this.ctx = this.canvas.getContext("2d");
+        var ctx = this.canvas.getContext("2d");
         ctx.imageSmoothingEnabled = false;
+        this.ctx = ctx;
         this.buildImage(map, tileset);
     }
 
@@ -95,37 +97,40 @@ export class TiledImage{
 */
 export class SpriteAnimation{
 
-    /*  frameRate: the time given to each frame in seconds
-    */
-    constructor(frameRate){
-        this.frameRate = frameRate;
-        this.frames = [];
-        this.lastIncrement = 0;
+    constructor(frames=[], oscillate=false){
+        this.frames = frames;
+        this.timePassed = 0;
         this.currentFrame = 0;
-    }
-
-    setFrame(i){
-        this.currentFrame = i;
-        this.lastIncrement = 0;
-    }
-
-    incrementFrame(increment=1){
-        this.currentFrame += increment;
-        if(this.currentFrame >= this.frames.length){
-            this.currentFrame = 0;
-        }
+        this.oscillate = oscillate;
+        this.increment = 1;
+        this.frameRate = 100;
     }
 
     update(dt){
-        var currentTime = performance.now();
-        if(currentTime >= this.lastIncrement + this.frameRate){
-            this.lastIncrement = currentTime;
+        this.timePassed += dt * 1000;
+        if(this.timePassed >= this.frameRate){
             this.incrementFrame();
         }
     }
 
+    incrementFrame(){
+        this.currentFrame += this.increment;
+        if(this.oscillate && (this.currentFrame == this.frames.length - 1 || this.currentFrame == 0)){
+            this.increment *= -1;
+        }else if(this.currentFrame >= this.frames.length){
+            this.currentFrame = 0;
+        }
+        this.timePassed = 0;
+    }
+
     getCurrentFrame(){
         return this.frames[this.currentFrame];
+    }
+
+    setFrame(i){
+        this.currentFrame = i;
+        this.timePassed = 0;
+        this.increment = 1;
     }
 
 }

@@ -46,6 +46,7 @@ async function init(){
     ctx.imageSmoothingEnabled = false; 
 
     input = new Input(canvas);
+    oldTimeStamp = 0.0;
 
     canvas.addEventListener("click", start);
     console.info("Engine init complete. Waiting for interaction.");
