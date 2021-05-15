@@ -11,6 +11,7 @@ import { loadImage, readJsonFile } from "../../../engine/src/utils.js";
 import { environment as env } from "../environment.js";
 import { TiledImage, TileSet, SpriteAnimation } from "../obj/canvasTile.js";
 import { buildCreatureAnimations } from "../obj/entity.js";
+import { scene2 } from "./scene2.js";
 
 console.log("Hello from scene!");
 
@@ -18,6 +19,8 @@ window.scene = {
     "init": init,
     "destroy": destroy
 };
+
+let local;
 
 function init() {
     return new Promise(async resolve => {
@@ -44,13 +47,18 @@ function init() {
             animation.playInLoop();
         }, 2000)
         
-        let local = new GameObject();
+        local = new GameObject();
         local.update = (dt)=>{
             if("KeyE" in input.pressed){
                 animation.stop();
             }
             if("KeyR" in input.pressed){
                 animation.playOnce();
+            }
+            if("KeyT" in input.pressed){
+                window.scene.destroy();
+                window.scene = scene2;
+                window.scene.init();
             }
             animation.update(dt);
         }
@@ -64,4 +72,7 @@ function init() {
     });
 }
 
-function destroy() { }
+function destroy() { 
+    objectRegister.reset();
+    console.log("ugh! I've been killed!");
+}
