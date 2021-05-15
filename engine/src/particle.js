@@ -1,22 +1,19 @@
-import { GameObject } from "../../../engine/src/gameObject.js";
-import { Coord } from "../../../engine/src/utils.js"
+import { GameObject } from "./gameObject.js";
+import { Coord } from "./utils.js";
+
+/*
+    a particle is...
+    - a thing that exists at a location
+    - typically moves
+    - typically changes over time
+    - typically disappears after a certain amount of time
+*/
 
 
-// a particle is...
-// - a thing that exists at a location
-// - typically moves
-// - typically changes over time
-// - typically disappears after a certain amount of time
-
-// {
-//      position: Coord, 
-//      velocity: Coord,
-//      timer: num,
-//      update: func(dt)
-//      draw: func(ctx)
-// }
-
-// don't extend particle from GameObject to avoid lifecycle hooks
+/*  Initial position: x, y
+    Initaly velocity: vx, vy
+    Time to live: t
+*/
 export class Particle{
     constructor(x, y, vx, vy, t){
         this.position = new Coord(x, y), 
@@ -26,7 +23,6 @@ export class Particle{
     behavior(dt){}
     draw(ctx){}
 }
-
 
 export class FlameParticle extends Particle{
 
@@ -49,7 +45,9 @@ export class FlameParticle extends Particle{
 
 }
 
-// particle manager will hold and update all particles
+/*  particle manager will hold and update all particles. When a particle
+    is created, push it to the particle list.
+*/
 export class ParticleManager extends GameObject{
 
     constructor(){

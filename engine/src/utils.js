@@ -41,8 +41,8 @@ export function loadImage(pathToResource){
 
 export class Coord{
     constructor(x=0, y=0){
-        this.x = parseInt(x);
-        this.y = parseInt(y);
+        this.x = parseFloat(x);
+        this.y = parseFloat(y);
     }
 
     toString(){
