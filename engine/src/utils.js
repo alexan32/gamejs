@@ -86,6 +86,17 @@ export class EventEmitter{
             });
         }
     }
+
+    removeCallback(eventName, cb){
+        var index = this.events[eventName].indexOf(cb);
+        if(index != -1){
+            this.events[eventName].splice(index, 1);
+        }
+    }
+
+    resetCallbacks(){
+        this.events = {};
+    }
 }
 
 

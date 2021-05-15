@@ -1,4 +1,4 @@
-import { EventEmitter } from "../../../engine/src/utils.js";
+import { EventEmitter, State, StateMachine } from "../../../engine/src/utils.js";
 
 /*  A TileSet is a canvas that holds an image meant to be broken up into
     subregions with a width of tileW and a height of tileH
@@ -97,31 +97,29 @@ export class TiledImage{
 */
 export class SpriteAnimation{
 
-    constructor(frames=[], oscillate=false){
+    constructor(frames=[]){
         this.frames = frames;
         this.timePassed = 0;
         this.currentFrame = 0;
-        this.oscillate = oscillate;
-        this.increment = 1;
         this.frameRate = 100;
-        this.isPlayOnce = false;
         this.eventHandler = new EventEmitter();
+        this.machine = this.buildStateMachine();
     }
 
     update(dt){
-        this.timePassed += dt * 1000;
-        if(this.timePassed >= this.frameRate){
-            this.incrementFrame();
+        if(this.machine.currentState != "FIRST_FRAME"){
+            this.timePassed += dt * 1000;
+            if(this.timePassed >= this.frameRate){
+                this.incrementFrame();
+            }
         }
     }
 
     incrementFrame(){
-        this.currentFrame += this.increment;
-        if(this.oscillate && (this.currentFrame == this.frames.length - 1 || this.currentFrame == 0)){
-            this.increment *= -1;
-        }else if(this.currentFrame >= this.frames.length){
+        this.currentFrame += 1;
+        if(this.currentFrame >= this.frames.length){
             this.eventHandler.trigger("lastFrame",{frameRate: this.frameRate, frameCount: this.frames.length});
-            this.currentFrame = 0;
+            this.currentFrame = this.machine.currentState === "PLAYING_IN_LOOP" ? 1 : 0;
         }
         this.timePassed = 0;
     }
@@ -133,7 +131,58 @@ export class SpriteAnimation{
     setFrame(i){
         this.currentFrame = i;
         this.timePassed = 0;
-        this.increment = 1;
+    }
+
+    playOnce(){
+        this.machine.update("playOnce");
+    }
+
+    playInLoop(){
+        this.machine.update("playInLoop");
+    }
+
+    stop(){
+        this.machine.update("stop");
+    }
+
+    buildStateMachine(){
+        var machine = new StateMachine("FIRST_FRAME");
+        // --------------------------------------------------------
+        var PLAYING_ONCE = new State({
+            "stop": "FIRST_FRAME",
+            "playInLoop": "PLAYING_IN_LOOP"
+        });
+        PLAYING_ONCE.onEnter = ()=>{
+            this.setFrame(0);
+            const cb = ()=>{ 
+                machine.update("stop");
+                this.eventHandler.removeCallback("lastFrame", cb);
+            }
+            this.eventHandler.on("lastFrame", cb);
+        };
+        // --------------------------------------------------------
+        var PLAYING_IN_LOOP = new State({
+            "stop": "FIRST_FRAME",
+            "playOnce": "PLAYING_ONCE"
+        });
+        PLAYING_IN_LOOP.onEnter = ()=>{
+            this.setFrame(0);
+        }
+        // --------------------------------------------------------
+        var FIRST_FRAME = new State({
+            "playInLoop": "PLAYING_IN_LOOP",
+            "playOnce": "PLAYING_ONCE"
+        });
+        FIRST_FRAME.onEnter = ()=>{
+            this.setFrame(0);
+        }
+        // --------------------------------------------------------
+        machine.states = {
+            "PLAYING_ONCE": PLAYING_ONCE,
+            "PLAYING_IN_LOOP": PLAYING_IN_LOOP,
+            "FIRST_FRAME": FIRST_FRAME
+        }
+        return machine;
     }
 
 }
