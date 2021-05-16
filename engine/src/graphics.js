@@ -47,6 +47,20 @@ export class TileSet{
         return cnvs;
     }
 
+    toAnimationList() {
+        var animations = [];
+        var counter = 0;
+        for (var r = 0; r < this.numRows; r++) {
+            var frames = [];
+            for (var c=0; c < this.numColumns; c++) {
+                frames.push(this.getTile(counter));
+                counter += 1;
+            }
+            animations.push(new SpriteAnimation(frames));
+        }
+        return animations;
+    }
+
 }
 
 

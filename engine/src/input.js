@@ -27,7 +27,7 @@ export class Input{
     setEventBehavior(){
         window.addEventListener("keydown", event =>{
             this.pressed[event.code] = true;
-            if(event.code in ["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]){
+            if(["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(event.code) != -1){
                 this.directional[event.code] = true;
             }
         });

@@ -25,14 +25,14 @@ let local;
 function init() {
     return new Promise(async resolve => {
 
-        // let level = readJsonFile("../tile/assets/level.json");
-        // let img = await loadImage("../tile/assets/tiles.png");
-        // let sheet = await loadImage("../tile/assets/knight.png");
+        // let level = readJsonFile("../animation/assets/level.json");
+        // let img = await loadImage("../animation/assets/tiles.png");
+        // let sheet = await loadImage("../animation/assets/knight.png");
 
         // let tileset = new TileSet(img, 16, 16);
         // let background = new TiledImage(level.map, tileset);
 
-        let spriteImage = await loadImage("../tile/assets/knight.png");
+        let spriteImage = await loadImage("../animation/assets/knight.png");
         let spritesheet = new TileSet(spriteImage, 32, 32);
         let animations = buildCreatureAnimations(spritesheet);
         let index = 0;

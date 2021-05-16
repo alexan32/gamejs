@@ -17,7 +17,7 @@ import { environment as env } from "../environment.js"
         "destroy": destroy
     }
 */
-
+/* REMOVE ME if scene is not root*/
 window.scene = {
     "init": init,
     "destroy": destroy
