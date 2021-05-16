@@ -1,7 +1,7 @@
 import { GameObject } from "../../../engine/src/gameObject.js";
 import { Coord, EventEmitter, State, StateMachine, angleRadians, distanceBetweenTwoPoints } from "../../../engine/src/utils.js";
 import { environment as env } from "../environment.js";
-
+import { canvas } from "../../../engine/main.js";
 
 
 /*    
@@ -43,6 +43,14 @@ export class Creature extends GameObject{
         }
 
         this.arrived = ()=>{return this.position == this.targetPosition};
+
+        canvas.addEventListener("mousedown", event=>{
+            var mx = event.clientX - canvas.offsetLeft;
+            var my = event.clientY - canvas.offsetTop;
+            if(this.screenPosition.x <= mx && mx <=this.screenPosition.x + 32 && this.screenPosition.y <= my && my <=this.screenPosition.y + 32){
+                this.events.trigger("clicked", {id:this.id});
+            }
+        });
     }
 
     update(dt){

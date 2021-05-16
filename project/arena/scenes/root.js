@@ -5,7 +5,7 @@
 */
 
 // engine imports
-import { input } from "../../../engine/main.js";
+import { input, canvas } from "../../../engine/main.js";
 import { GameObject, objectRegister } from "../../../engine/src/gameObject.js"
 import { TiledImage, TileSet } from "../../../engine/src/graphics.js";
 import { loadImage, readJsonFile } from "../../../engine/src/utils.js";
@@ -36,11 +36,14 @@ function init() {
         var spriteImage = await loadImage("../arena/assets/knight.png");
         var spriteTiles = new TileSet(spriteImage, env.tileSize, env.tileSize);
         let pc = new Creature(6, 6, spriteTiles.toAnimationList());
+        pc.events.on("clicked", event=>{console.log(event)});
 
         // create local game object
         let local = new GameObject();
         local.renderLayer = env.mapLayer;
         local.draw = (ctx)=>{
+            ctx.fillStyle = "#222";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(map.canvas, 0, 0);
         }
         local.update=(dt)=>{
