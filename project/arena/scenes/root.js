@@ -8,7 +8,7 @@
 import { input, canvas, viewFrame } from "../../../engine/main.js";
 import { GameObject, objectRegister } from "../../../engine/src/gameObject.js"
 import { TiledImage, TileSet } from "../../../engine/src/graphics.js";
-import { loadImage, readJsonFile } from "../../../engine/src/utils.js";
+import { loadImage, readJsonFile, rectanglesIntersect } from "../../../engine/src/utils.js";
 
 // project imports
 import { environment as env } from "../environment.js"
@@ -38,7 +38,6 @@ function init() {
         var spriteTiles = new TileSet(spriteImage, env.tileSize, env.tileSize);
         let pc = new Creature(6, 6, spriteTiles.toAnimationList(), viewFrame);
         pc.events.on("clicked", event=>{console.log(event)});
-
         viewFrame.setTarget(pc.screenPosition, env.tileSize/2, env.tileSize/2);
 
         // create local game object
@@ -68,6 +67,17 @@ function init() {
                 }
                 pc.setTargetPosition(pc.position.x + x, pc.position.y + y);
             }
+            var v1 = {"x": viewFrame.world.x, "y": viewFrame.world.y};
+            var v2 = {"x": viewFrame.world.x + canvas.width, "y": viewFrame.world.y + canvas.height};
+            var i1 = {"x": 0, "y": 0};
+            var i2 = {"x": map.canvas.width, "y": map.canvas.height};
+            document.getElementById("debug").innerText = `
+                v1: ${v1.x} ${v1.y}
+                v2: ${v2.x} ${v2.y}
+                i1: ${i1.x} ${i1.y}
+                i2: ${i2.x} ${i2.y}
+                intersect? ${rectanglesIntersect(v1, v2, i1, i2)}
+            `;
         }
 
 

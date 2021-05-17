@@ -66,45 +66,44 @@ export class ViewFrame extends GameObject{
         var i1 = {"x": x, "y": y};
         var i2 = {"x": x + image.width, "y": y + image.height};
 
-        // image rectangle is ___ of view rectangle
-        var left = v2.x <= i1.x;
-        var right = i2.x <= v1.x;
-        var above = v2.x <= i1.y;
-        var below = v1.y <= i2.y;
+        var renderStrategy = "?";
 
         if(rectangleContains(v1, v2, i1, i2)){
             // image is fully in frame
+            renderStrategy = "subtractView";
             ctx.drawImage(image, x - this.world.x, y - this.world.y);
         }else if(rectangleContains(i1, i2, v1, v2)){
             // frame is fully in image
+            renderStrategy = "sliceInterior";
             ctx.drawImage(image, this.world.x, this.world.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-        } else {
+        } else if(rectanglesIntersect(v1, v2, i1, i2)){
+            // image and frame partially intersect
+            renderStrategy = "sliceExterior";
             var sx;
             var sy;
             var sw;
             var sh;
-            if(v1.x < i1.x && i1.x < v2.x){
-                sx = 0;
-                sw = i2.x - v2.x;
-            }else if(v1.x < i2.x && i2.x < v2.x){
-                sx = Math.abs(v1.x - i1.x);
+            if(i1.x <= v1.x && v1.x <= i2.x){
+                sx = v1.x - i1.x
                 sw = i2.x - v1.x;
-                console.log(sx, sw)
+                x = 0;
+            }else if(v1.x <= i1.x && i1.x <= v2.x){
+                sx = 0;
+                sw = v2.x - i1.x;
+                x = i1.x - v1.x;
             }
             if(v1.y < i1.y && i1.y < v2.y){
-                sy = 0;
-                sh = v2.y - i1.y;
-            }
-            else if(v1.y < i2.y && i2.y < v2.y){
-                sy = Math.abs(v1.y - i1.y);
+                sy = v1.y - i1.y;
                 sh = i2.y - v1.y;
+                y = 0;
             }
-            ctx.drawImage(image, sx, sy, sw, sh, x - this.world.x, y - this.world.y, sw, sh);
+            else if(v1.y <= i2.y && i2.y <= v2.y){
+                sy = v1.y - i1.y;
+                sh = i2.y - v1.y;
+                y = 0;
+            }
+            ctx.drawImage(image, sx, sy, sw, sh, x, y, sw, sh);
         }
-    }
-
-    contains(v1, v2, i1, i2){
-
     }
 
 }
