@@ -58,7 +58,6 @@ export class GameObject{
 
     destroy(){
         objectRegister.deregister(this);
-        delete this;
     }
 
 }
