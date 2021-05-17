@@ -30,7 +30,6 @@ function init() {
         var tileImage = await loadImage("../arena/assets/waitingArea.png");
         var tileset = new TileSet(tileImage, env.tileSize, env.tileSize);
         let map = new TiledImage(levelData.map, tileset);
-
         viewFrame.initialize(map.canvas.width, map.canvas.height, true);
 
         // create creatures
@@ -67,20 +66,7 @@ function init() {
                 }
                 pc.setTargetPosition(pc.position.x + x, pc.position.y + y);
             }
-            var v1 = {"x": viewFrame.world.x, "y": viewFrame.world.y};
-            var v2 = {"x": viewFrame.world.x + canvas.width, "y": viewFrame.world.y + canvas.height};
-            var i1 = {"x": 0, "y": 0};
-            var i2 = {"x": map.canvas.width, "y": map.canvas.height};
-            document.getElementById("debug").innerText = `
-                v1: ${v1.x} ${v1.y}
-                v2: ${v2.x} ${v2.y}
-                i1: ${i1.x} ${i1.y}
-                i2: ${i2.x} ${i2.y}
-                intersect? ${rectanglesIntersect(v1, v2, i1, i2)}
-            `;
         }
-
-
 
         objectRegister.buildRenderList();
         resolve();

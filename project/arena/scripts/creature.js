@@ -63,11 +63,6 @@ export class Creature extends GameObject{
 
     draw(ctx){
         this.viewFrame.drawImage(this.currentAnimation.getCurrentFrame(), this.screenPosition.x, this.screenPosition.y, ctx);
-        // if(this.viewFrame){
-        //     ctx.drawImage(this.currentAnimation.getCurrentFrame(), this.screenPosition.x - this.viewFrame.worldPosition.x, this.screenPosition.y - this.viewFrame.worldPosition.y);
-        // }else{
-        //     ctx.drawImage(this.currentAnimation.getCurrentFrame(), this.screenPosition.x, this.screenPosition.y);
-        // }
     }
 
     setTargetPosition(x, y){

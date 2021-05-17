@@ -3,5 +3,7 @@
 export var environment = {
     tileSize: 32,
     mapLayer: 0,
-    creatureLayer: 1
+    surfaceLayer:1,
+    creatureLayer: 2,
+    uiLayer: 3
 };
