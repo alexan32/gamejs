@@ -21,6 +21,26 @@ export function angleDegrees(x1, y1, x2, y2){
     return Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
 }
 
+// returns true if rectangle i is fully inside rectangle v.
+// 1 is top left, 2 is bottom right
+export function rectangleContains(v1, v2, i1, i2){
+    return (v1.x <= i1.x && v1.y <= i1.y && i2.x <= v2.x && v1.y <= i2.y);
+}
+
+export function rectanglesIntersect(v1, v2, i1, i2){
+    // left or right
+    if(v2.x <= i1.x || i2.x <= v1.x){
+        console.log("left or right!")
+        return false;
+    }
+    // above or below
+    if(v2.y <= i1.y || v1.y >= i2.y){
+        console.log(`v2.y:${v2.y}, i1.y:${i1.y}, v1.y:${v1.y}, i2.y:${i2.y}`)
+        return false;
+    }
+    return true;
+}
+
 export function readJsonFile(pathToFile){
     console.log("Loading json file from path: ", pathToFile);
     var request = new XMLHttpRequest();

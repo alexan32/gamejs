@@ -1,11 +1,12 @@
-// move to config file
 import { objectRegister } from "./src/gameObject.js";
 import { Input } from "./src/input.js";
 import { EventEmitter } from "./src/utils.js";
+import { ViewFrame } from "./src/viewframe.js";
 
 export let canvas = document.getElementById("gameScreen");
 export let input = new Input(canvas);
 export let gameEvent = new EventEmitter();
+export let viewFrame = new ViewFrame();
 
 
 let ctx;

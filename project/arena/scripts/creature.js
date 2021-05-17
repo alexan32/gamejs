@@ -20,12 +20,13 @@ import { canvas } from "../../../engine/main.js";
 
 export class Creature extends GameObject{
 
-    constructor(x, y, animations){
+    constructor(x, y, animations, viewFrame=null){
         super();
 
         this.targetPosition = new Coord(x,y);
         this.position = this.targetPosition;
         this.screenPosition = new Coord(x*env.tileSize, y*env.tileSize);
+        this.viewFrame = viewFrame;
 
         this.events = new EventEmitter();
         this.machine = this.buildMachine();
@@ -61,7 +62,12 @@ export class Creature extends GameObject{
     }
 
     draw(ctx){
-        ctx.drawImage(this.currentAnimation.getCurrentFrame(), this.screenPosition.x, this.screenPosition.y);
+        this.viewFrame.drawImage(this.currentAnimation.getCurrentFrame(), this.screenPosition.x, this.screenPosition.y, ctx);
+        // if(this.viewFrame){
+        //     ctx.drawImage(this.currentAnimation.getCurrentFrame(), this.screenPosition.x - this.viewFrame.worldPosition.x, this.screenPosition.y - this.viewFrame.worldPosition.y);
+        // }else{
+        //     ctx.drawImage(this.currentAnimation.getCurrentFrame(), this.screenPosition.x, this.screenPosition.y);
+        // }
     }
 
     setTargetPosition(x, y){
