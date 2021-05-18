@@ -2,7 +2,7 @@
 import { input, canvas, viewFrame } from "../../../engine/main.js";
 import { GameObject, objectRegister } from "../../../engine/src/gameObject.js"
 import { TiledImage, TileSet } from "../../../engine/src/graphics.js";
-import { loadImage, readJsonFile} from "../../../engine/src/utils.js";
+import { Coord, loadImage, readJsonFile} from "../../../engine/src/utils.js";
 
 // project imports
 import { environment as env } from "../environment.js"
@@ -26,13 +26,14 @@ function init() {
         var tileset = new TileSet(tileImage, env.tileSize, env.tileSize);
         let map = new TiledImage(levelData.map, tileset);
         viewFrame.initialize(map.canvas.width, map.canvas.height, true);
+        viewFrame.setTarget(new Coord(map.canvas.width/2, map.canvas.height/2));
 
         // create creatures
         var spriteImage = await loadImage("../arena/assets/knight.png");
         var spriteTiles = new TileSet(spriteImage, env.tileSize, env.tileSize);
+        
         let pc = new Creature(6, 6, spriteTiles.toAnimationList(), viewFrame);
-        pc.events.on("clicked", event=>{console.log(event)});
-        viewFrame.setTarget(pc.screenPosition, env.tileSize/2, env.tileSize/2);
+        let npc = new Creature(5, 3, spriteTiles.toAnimationList())
 
         // create local game object
         let local = new GameObject();

@@ -1,7 +1,7 @@
 import { GameObject } from "../../../engine/src/gameObject.js";
 import { Coord, EventEmitter, State, StateMachine, angleRadians, distanceBetweenTwoPoints } from "../../../engine/src/utils.js";
 import { environment as env } from "../environment.js";
-import { canvas } from "../../../engine/main.js";
+import { canvas, viewFrame } from "../../../engine/main.js";
 
 
 /*    
@@ -20,13 +20,12 @@ import { canvas } from "../../../engine/main.js";
 
 export class Creature extends GameObject{
 
-    constructor(x, y, animations, viewFrame=null){
+    constructor(x, y, animations){
         super();
 
         this.targetPosition = new Coord(x,y);
         this.position = this.targetPosition;
         this.screenPosition = new Coord(x*env.tileSize, y*env.tileSize);
-        this.viewFrame = viewFrame;
 
         this.events = new EventEmitter();
         this.machine = this.buildMachine();
@@ -62,7 +61,7 @@ export class Creature extends GameObject{
     }
 
     draw(ctx){
-        this.viewFrame.drawImage(this.currentAnimation.getCurrentFrame(), this.screenPosition.x, this.screenPosition.y, ctx);
+        viewFrame.drawImage(this.currentAnimation.getCurrentFrame(), this.screenPosition.x, this.screenPosition.y, ctx);
     }
 
     setTargetPosition(x, y){

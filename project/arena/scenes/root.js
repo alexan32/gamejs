@@ -1,5 +1,6 @@
 // engine imports
 import { GameObject, objectRegister } from "../../../engine/src/gameObject.js"
+import { canvas } from "../../../engine/main.js";
 
 // project imports
 import { environment as env } from "../environment.js"
@@ -13,7 +14,14 @@ window.scene = {
 function init() {
     return new Promise(async resolve => {
 
-        waitingMap.init();
+        await waitingMap.init();
+
+        let background = new GameObject();
+        background.renderLayer = -1;
+        background.draw = (ctx)=>{
+            ctx.fillStyle = "#222";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
 
         objectRegister.buildRenderList();
         resolve();

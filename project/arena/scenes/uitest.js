@@ -5,13 +5,14 @@ import { canvas } from "../../../engine/main.js"
 // project imports
 import { environment as env } from "../environment.js"
 
-
 export var scene = {
     "init": init,
     "destroy": destroy
 }
 
 
+/* Initialize GameObjects inside of promise 
+*/
 function init() {
     return new Promise(async resolve => {
 
@@ -20,4 +21,6 @@ function init() {
     });
 }
 
+/* Deregister GameObjects here
+*/
 function destroy() { }
