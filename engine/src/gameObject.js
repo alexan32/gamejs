@@ -32,6 +32,7 @@ export var objectRegister = {
         this.renderList.sort((a, b)=> {
             return a.renderLayer - b.renderLayer;
         });
+        console.log(this.renderList);
     },
 
     // clears the register

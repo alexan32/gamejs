@@ -39,9 +39,6 @@ function init() {
         let local = new GameObject();
         local.renderLayer = env.mapLayer;
         local.draw = (ctx)=>{
-            ctx.fillStyle = "#222";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            // ctx.drawImage(map.canvas, 0 + viewFrame.world.x, 0 + viewFrame.world.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
             viewFrame.drawImage(map.canvas, 0, 0, ctx);
         }
         local.update=(dt)=>{
@@ -64,7 +61,7 @@ function init() {
             }
         }
 
-        objectRegister.buildRenderList();
+        // objectRegister.buildRenderList();
         resolve();
     });
 }

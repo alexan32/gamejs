@@ -30,12 +30,10 @@ export function rectangleContains(v1, v2, i1, i2){
 export function rectanglesIntersect(v1, v2, i1, i2){
     // left or right
     if(v2.x <= i1.x || i2.x <= v1.x){
-        console.log("left or right!")
         return false;
     }
     // above or below
     if(v2.y <= i1.y || v1.y >= i2.y){
-        console.log(`v2.y:${v2.y}, i1.y:${i1.y}, v1.y:${v1.y}, i2.y:${i2.y}`)
         return false;
     }
     return true;
