@@ -97,10 +97,10 @@ export class EventEmitter{
         }
     }
 
-    trigger(eventName, ...args){
+    trigger(context, eventName, ...args){
         if(this.events[eventName]){
             this.events[eventName].forEach(cb=>{
-                cb.apply(null, args);
+                cb.apply(context, args);
             });
         }
     }
