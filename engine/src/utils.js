@@ -83,38 +83,54 @@ export class Array2D{
     }
 }
 
-export class EventEmitter{
+const returnTrue = ()=>{return true};
+
+export class EventBus{
 
     constructor(){
-        this.events = {};
+        this.subscriptions = {};
+        this.filters = {};
     }
 
-    on(eventName, callback){
-        if(this.events[eventName]){
-            this.events[eventName].push(callback);
-        }else{
-            this.events[eventName] = [callback];
+    /*  eventName: event which triggers the callback
+        callback: the callback function
+        eventFilter: function. takes the event as input and returns true or false
+    */
+    on(eventName, callback, eventFilter=returnTrue) {
+        const id = uuidv4();
+        if (!this.subscriptions[eventName]){
+            this.subscriptions[eventName] = {};
+            this.filters[eventName] = {};
+        }
+    
+        this.subscriptions[eventName][id] = callback;
+        this.filters[eventName][id] = eventFilter;
+
+        return {
+            unsubscribe: () => {
+                delete this.subscriptions[eventName][id];
+                delete this.filters[eventName][id];
+                if (Object.keys(this.subscriptions[eventName]).length === 0){
+                    delete this.subscriptions[eventName];
+                }
+                if (Object.keys(this.filters[eventName]).length === 0){
+                    delete this.filters[eventName];
+                }
+            }
         }
     }
-
-    trigger(context, eventName, ...args){
-        if(this.events[eventName]){
-            this.events[eventName].forEach(cb=>{
-                cb.apply(context, args);
-            });
+    
+    trigger(eventName, eventPayload) {
+        if(!this.subscriptions[eventName]){
+            return;
         }
+        Object.keys(this.subscriptions[eventName]).forEach(key => {
+            if(this.filters[eventName][key](eventPayload)){
+                this.subscriptions[eventName][key](eventPayload);
+            }
+        });
     }
 
-    removeCallback(eventName, cb){
-        var index = this.events[eventName].indexOf(cb);
-        if(index != -1){
-            this.events[eventName].splice(index, 1);
-        }
-    }
-
-    resetCallbacks(){
-        this.events = {};
-    }
 }
 
 

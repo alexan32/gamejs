@@ -1,4 +1,4 @@
-import { EventEmitter } from "./utils.js";
+import { EventBus } from "./utils.js";
 
 export class Input{
 
@@ -24,7 +24,7 @@ export class Input{
             down: false,
             held: false
         };
-        this.events = new EventEmitter();
+        this.events = new EventBus();
         this.setEventBehavior();
         this.heldTimeout = null;
     }

@@ -1,5 +1,5 @@
-import { EventEmitter } from "../../../engine/src/utils.js";
-import { viewFrame, canvas, input} from "../../../engine/main.js";
+import { EventBus } from "../../../engine/src/utils.js";
+import {input} from "../../../engine/main.js";
 
 
 export class InterfaceTile{
@@ -13,12 +13,23 @@ export class InterfaceTile{
         this.screenY = 0;
         this.id = id;
 
-        this.events = new EventEmitter();
-
         this.image = image;
         this.parent = null;
         this.children = [];
         this.initialDraw = true;
+
+
+        this.events = new EventBus();
+        this.subscriptions = {};
+        const eventOverTile = (event)=>{
+            return (event.x >= this.screenX 
+                && event.x <= this.screenX + this.w 
+                && event.y >= this.screenY 
+                && event.y <= this.screenY + this.h
+            )
+        }
+        
+        this.subscriptions["mousedown"] = input.events.on("mousedown", this.onMouseDown.bind(this), eventOverTile.bind(this));
     }
 
 
@@ -35,6 +46,10 @@ export class InterfaceTile{
     setParent(parent){
         this.parent = parent;
         parent.children.push(this);
+    }
+
+    onMouseDown(event){
+        console.log(event);
     }
 
 }

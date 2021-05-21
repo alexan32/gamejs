@@ -1,4 +1,4 @@
-import { EventEmitter, State, StateMachine } from "../../../engine/src/utils.js";
+import { EventBus, State, StateMachine } from "../../../engine/src/utils.js";
 
 /*  A TileSet is a canvas that holds an image meant to be broken up into
     subregions with a width of tileW and a height of tileH
@@ -110,7 +110,7 @@ export class SpriteAnimation{
         this.timePassed = 0;
         this.currentFrame = 0;
         this.frameRate = 100;
-        this.eventHandler = new EventEmitter();
+        this.eventHandler = new EventBus();
         this.machine = this.buildStateMachine();
     }
 
