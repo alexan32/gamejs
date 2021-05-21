@@ -8,6 +8,10 @@ export class Input{
         Default Events:
         - noKeyInput: fires when there is no keyboard buttons being pressed.
         - noDirectionalInput: fires when there are no wasd or arrow keys pressed.
+        - mouseup
+        - mousedown
+        - mouseheld
+        - mousemove
     */
 
     constructor(canvas){
@@ -27,13 +31,13 @@ export class Input{
 
     // overwrite to set create custom input behavior.
     setEventBehavior(){
-        this.gameCanvas.addEventListener("keydown", event =>{
+        window.addEventListener("keydown", event =>{
             this.pressed[event.code] = true;
             if(["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(event.code) != -1){
                 this.directional[event.code] = true;
             }
         });
-        this.gameCanvas.addEventListener("keyup", event =>{
+        window.addEventListener("keyup", event =>{
             delete this.pressed[event.code];
             if(Object.keys(this.pressed).length === 0){
                 this.events.trigger("noKeyInput");
@@ -47,8 +51,8 @@ export class Input{
         });
 
         this.gameCanvas.addEventListener('mousemove', event => this.onMousemove(event));
-        this.gameCanvas.addEventListener('mouseup', event => this.onMouseup());
-        this.gameCanvas.addEventListener('mousedown', event => this.onMousedown());
+        this.gameCanvas.addEventListener('mouseup', () => this.onMouseup());
+        this.gameCanvas.addEventListener('mousedown', () => this.onMousedown());
     }
 
     onMousemove(event){
@@ -75,59 +79,6 @@ export class Input{
     onMouseHeld(mouse){
         mouse.held = true;
         this.events.trigger("mouseheld", this.mouse);
-    }
-
-}
-
-
-/*  Use this object to filter out mouse events for a 
-    subregion of the canvas. mouse detector events will only
-    trigger when a mouse event occurs within a subregion of
-    the canvas.
-*/
-export class MouseDetector{
-
-    constructor(x, y, w, h, input){
-        this.x = x;
-        this.y = y;
-        this.w = w;
-        this.h = h;
-        this.events = new EventEmitter();
-        this.input = input;
-        input.events.on("mousedown", this.onMouseDown);
-        input.events.on("mouseup", this.onMouseUp);
-        input.events.on("mousemove", this.onMouseMove);
-        input.events.on("mouseheld", this.onMouseHeld);
-        // this.inBounds = (event)=>{
-        //     return this.x <= event.x && this.y <= event.y && this.x + this.w >=event.x && this.y + this.h >= event.y;
-        // }
-    }
-
-    onMouseDown(event){
-        if(this.x <= event.x && this.y <= event.y && this.x + this.w >=event.x && this.y + this.h >= event.y)
-            this.events.trigger("mousedown", event);
-    }
-
-    onMouseUp(event){
-        if(this.x <= event.x && this.y <= event.y && this.x + this.w >=event.x && this.y + this.h >= event.y)
-            this.events.trigger("mouseup", event);
-    }
-
-    onMouseMove(event){
-        if(this.x <= event.x && this.y <= event.y && this.x + this.w >=event.x && this.y + this.h >= event.y)
-            this.events.trigger("mousedown", event);
-    }
-
-    onMouseHeld(event){
-        if(this.x <= event.x && this.y <= event.y && this.x + this.w >=event.x && this.y + this.h >= event.y)
-            this.events.trigger("mouseheld", event);
-    }
-
-    destroy(){
-        this.input.events.removeCallback("mousedown", this.onMouseDown);
-        this.input.events.removeCallback("mouseup", this.onMouseUp);
-        this.input.events.removeCallback("mousemove", this.onMouseMove);
-        this.input.events.removeCallback("mouseheld", this.onMouseHeld);
     }
 
 }

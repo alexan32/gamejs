@@ -27,9 +27,6 @@ function init() {
         var portraitImage = await loadImage("./assets/knight_portrait.png");
         var portrait = new InterfaceTile(portraitImage, 10, 10, 64, 64, "portrait");
         portrait.setParent(rootPanel);
-        portrait.events.on("mousedown", event=>{
-            console.log("portrait clicked!");
-        })
 
         console.log(rootPanel.children);
 
