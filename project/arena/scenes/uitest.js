@@ -12,7 +12,7 @@ export var scene = {
     "destroy": destroy
 }
 
-let bottomPanel;
+let myUi;
 
 /* Initialize GameObjects inside of promise 
 */
@@ -30,9 +30,10 @@ function init() {
 
         console.log(rootPanel.children);
 
-        bottomPanel = new GameObject();
-        bottomPanel.renderLayer = env.uiLayer;
-        bottomPanel.draw = (ctx)=>{
+        myUi = new GameObject();
+        myUi.renderLayer = env.uiLayer;
+        myUi.rootTile = rootPanel;
+        myUi.draw = (ctx)=>{
             rootPanel.draw(ctx, panelX, panelY);
         }
 
@@ -44,7 +45,8 @@ function init() {
 /* Deregister GameObjects here
 */
 function destroy() { 
-    objectRegister.deregister(bottomPanel);
+    myUi.rootTile.destroy();
+    objectRegister.deregister(myUi);
 }
 
 function makeARect(w, h, fill){

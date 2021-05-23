@@ -7,11 +7,25 @@ import { Coord, loadImage, readJsonFile} from "../../../engine/src/utils.js";
 // project imports
 import { environment as env } from "../environment.js"
 import { Creature } from "../scripts/creature.js";
+import { Camera } from "../scripts/camera.js";
 
 export var scene = {
     "init": init,
     "destroy": destroy
 }
+
+
+let playableList = [];
+let enemyList = [];
+let controller = {
+    selectedCharacterId: "",
+    update: function(dt){
+        if("Escape" in input.pressed){
+            this.selectedCharacter = null;
+        }
+    }
+};
+
 
 /* Initialize GameObjects inside of promise 
 */
@@ -25,43 +39,36 @@ function init() {
         var tileImage = await loadImage("../arena/assets/waitingArea.png");
         var tileset = new TileSet(tileImage, env.tileSize, env.tileSize);
         let map = new TiledImage(levelData.map, tileset);
+        
+        // game camera
         viewFrame.initialize(map.canvas.width, map.canvas.height, true);
-        viewFrame.setTarget(new Coord(map.canvas.width/2, map.canvas.height/2));
+        let camera = new Camera(6, 6);
 
         // create creatures
         var spriteImage = await loadImage("../arena/assets/knight.png");
         var spriteTiles = new TileSet(spriteImage, env.tileSize, env.tileSize);
         
-        let pc = new Creature(6, 6, spriteTiles.toAnimationList(), viewFrame);
-        let npc = new Creature(5, 3, spriteTiles.toAnimationList())
+        let pc = new Creature(6, 6, spriteTiles.toAnimationList());
+        let pc2 = new Creature(6, 7, spriteTiles.toAnimationList());
+        let enemy = new Creature(10, 11, spriteTiles.toAnimationList());
 
-        // create local game object
+        pc.events.on("clicked", selectCreature);
+        pc2.events.on("clicked", selectCreature);
+        enemy.events.on("clicked", selectCreature);
+
+        playableList = [pc.id, pc2.id];
+        enemyList = [enemy];
+
+
+        // background
         let local = new GameObject();
         local.renderLayer = env.mapLayer;
         local.draw = (ctx)=>{
             viewFrame.drawImage(map.canvas, 0, 0, ctx);
         }
-        local.update=(dt)=>{
-            if(Object.keys(input.directional).length > 0 && pc.arrived()){
-                var x = 0;
-                var y = 0;
-                if("KeyA" in input.directional){
-                    x -= 1;
-                }
-                if("KeyD" in input.directional){
-                    x += 1;
-                }
-                if("KeyW" in input.directional){
-                    y -= 1;
-                }
-                if("KeyS" in input.directional){
-                    y += 1;
-                }
-                pc.setTargetPosition(pc.position.x + x, pc.position.y + y);
-            }
+        local.update = (dt)=>{
+            controller.update(dt);
         }
-
-        // objectRegister.buildRenderList();
         resolve();
     });
 }
@@ -69,3 +76,12 @@ function init() {
 /* Deregister GameObjects here. You can use objectRegister.reset() to 
 */  
 function destroy() { }
+
+
+function selectCreature(event){
+    var creature = objectRegister.objects[event.id];
+    if(creature.id != controller.selectedCharacterId && playableList.indexOf(creature.id) != -1){
+        controller.selectedCharacter = creature;
+        console.log("hello!");
+    }
+}

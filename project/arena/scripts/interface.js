@@ -18,7 +18,6 @@ export class InterfaceTile{
         this.children = [];
         this.initialDraw = true;
 
-
         this.events = new EventBus();
         this.subscriptions = {};
         const eventOverTile = (event)=>{
@@ -28,7 +27,7 @@ export class InterfaceTile{
                 && event.y <= this.screenY + this.h
             )
         }
-        
+
         this.subscriptions["mousedown"] = input.events.on("mousedown", this.onMouseDown.bind(this), eventOverTile.bind(this));
     }
 
@@ -50,6 +49,13 @@ export class InterfaceTile{
 
     onMouseDown(event){
         console.log(event);
+    }
+
+    destroy(){
+        this.subscriptions["mousedown"].unsubscribe();
+        this.children.forEach(child=>{
+            child.destroy();
+        });
     }
 
 }

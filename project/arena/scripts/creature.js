@@ -1,16 +1,17 @@
 import { GameObject } from "../../../engine/src/gameObject.js";
 import { Coord, EventBus, State, StateMachine, angleRadians, distanceBetweenTwoPoints } from "../../../engine/src/utils.js";
 import { environment as env } from "../environment.js";
-import { canvas, viewFrame } from "../../../engine/main.js";
+import { canvas, viewFrame, input } from "../../../engine/main.js";
 
 
 /*    
     position: x,y of the tile this creature occupies
     targetPosition: x,y of the tile this creature is trying to reach
-    screenPosition: x,y coordinates on which to render
+    worldPosition: x,y pixel coordinates within the world.
     events:
         - arrived: triggers when the creature reaches the target position
         - moving: triggers when the creature leaves its current position
+        - clicked:
     machine states:
         - IDLE: the creature has arrived at target location
         - MOVING: the creature is moving towards target location
@@ -25,7 +26,8 @@ export class Creature extends GameObject{
 
         this.targetPosition = new Coord(x,y);
         this.position = this.targetPosition;
-        this.screenPosition = new Coord(x*env.tileSize, y*env.tileSize);
+        this.worldPosition = new Coord(x*env.tileSize, y*env.tileSize);
+        this.moveSpeed = 40;
 
         this.events = new EventBus();
         this.machine = this.buildMachine();
@@ -33,7 +35,6 @@ export class Creature extends GameObject{
         this.animations = animations;
         this.currentAnimation = animations[0];
         this.renderLayer = env.creatureLayer;
-        this.moveSpeed = 40;
         this.facing = "S"
         this.directionMap = {
             "N":1,
@@ -43,14 +44,14 @@ export class Creature extends GameObject{
         }
 
         this.arrived = ()=>{return this.position == this.targetPosition};
+        const eventFilter = (event)=>{
+            var x = this.worldPosition.x - viewFrame.worldPosition.x;
+            var y = this.worldPosition.y - viewFrame.worldPosition.y;
+            return (event.x >= x && event.x <= x + env.tileSize && event.y >= y && event.y <= y + env.tileSize );
+        }
 
-        canvas.addEventListener("mousedown", event=>{
-            var mx = event.clientX - canvas.offsetLeft;
-            var my = event.clientY - canvas.offsetTop;
-            if(this.screenPosition.x <= mx && mx <=this.screenPosition.x + 32 && this.screenPosition.y <= my && my <=this.screenPosition.y + 32){
-                this.events.trigger("clicked", {id:this.id});
-            }
-        });
+        this.subscriptions = {};
+        this.subscriptions["mousedown"] = input.events.on("mousedown", this.onMouseDown.bind(this), eventFilter);
     }
 
     update(dt){
@@ -61,7 +62,7 @@ export class Creature extends GameObject{
     }
 
     draw(ctx){
-        viewFrame.drawImage(this.currentAnimation.getCurrentFrame(), this.screenPosition.x, this.screenPosition.y, ctx);
+        viewFrame.drawImage(this.currentAnimation.getCurrentFrame(), this.worldPosition.x, this.worldPosition.y, ctx);
     }
 
     setTargetPosition(x, y){
@@ -73,7 +74,7 @@ export class Creature extends GameObject{
         this.machine.update("moving");
         var targetX = parseInt(this.targetPosition.x * env.tileSize);
         var targetY = parseInt(this.targetPosition.y * env.tileSize);
-        var angleToTarget = angleRadians(this.screenPosition.x, this.screenPosition.y, targetX, targetY);
+        var angleToTarget = angleRadians(this.worldPosition.x, this.worldPosition.y, targetX, targetY);
         var horizontal = Math.cos(angleToTarget) * this.moveSpeed * dt;
         var vertical = Math.sin(angleToTarget) * this.moveSpeed * dt;
         
@@ -89,11 +90,11 @@ export class Creature extends GameObject{
         }
 
         // perform move
-        this.screenPosition.x += horizontal;
-        this.screenPosition.y += vertical;
-        if(distanceBetweenTwoPoints(this.screenPosition.x, this.screenPosition.y, targetX, targetY) < 1){
-            this.screenPosition.x = targetX;
-            this.screenPosition.y = targetY;
+        this.worldPosition.x += horizontal;
+        this.worldPosition.y += vertical;
+        if(distanceBetweenTwoPoints(this.worldPosition.x, this.worldPosition.y, targetX, targetY) < 1){
+            this.worldPosition.x = targetX;
+            this.worldPosition.y = targetY;
             this.position = this.targetPosition;
             this.machine.update("arrived");
         }
@@ -137,5 +138,13 @@ export class Creature extends GameObject{
             "MOVING": MOVING
         }
         return machine;
+    }
+
+    onMouseDown(event){
+        this.events.trigger("clicked", {id: this.id});
+    }
+
+    destroy(){
+        this.subscriptions["mousedown"].unsubscribe();
     }
 }

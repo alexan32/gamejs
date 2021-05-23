@@ -4,14 +4,14 @@ import { Coord, rectangleContains, rectanglesIntersect } from "./utils.js";
 
 export class ViewFrame extends GameObject{
     
-    /*  world: the x/y of the frames top left corner, measured in pixels.
+    /*  worldPosition: the x/y of the frames top left corner, measured in pixels.
         enforceBoundary: whether or no the "camera" should continue to move beyond the map boundaries.
         noBoundary: if map is smaller than canvas, boundaries cannot be enforced.
-        boundary: the bounding rectangle. Viewframes world position cannot be outside.
+        boundary: the bounding rectangle. Viewframes worldPosition position cannot be outside.
     */
     constructor(){
         super();
-        this.world = new Coord(0, 0);
+        this.worldPosition = new Coord(0, 0);
         this.target = null;
         this.initialized = false;
         this.xOffset = 0;
@@ -56,13 +56,13 @@ export class ViewFrame extends GameObject{
             y = (y > this.boundary.h) ? this.boundary.h : y;
         }
         // set position
-        this.world.x = x;
-        this.world.y = y;
+        this.worldPosition.x = x;
+        this.worldPosition.y = y;
     }
 
     drawImage(image, x, y, ctx){
-        var v1 = {"x": this.world.x, "y": this.world.y};
-        var v2 = {"x": this.world.x + canvas.width, "y": this.world.y + canvas.height};
+        var v1 = {"x": this.worldPosition.x, "y": this.worldPosition.y};
+        var v2 = {"x": this.worldPosition.x + canvas.width, "y": this.worldPosition.y + canvas.height};
         var i1 = {"x": x, "y": y};
         var i2 = {"x": x + image.width, "y": y + image.height};
 
@@ -71,11 +71,11 @@ export class ViewFrame extends GameObject{
         if(rectangleContains(v1, v2, i1, i2)){
             // image is fully in frame
             renderStrategy = "subtractView";
-            ctx.drawImage(image, x - this.world.x, y - this.world.y);
+            ctx.drawImage(image, x - this.worldPosition.x, y - this.worldPosition.y);
         }else if(rectangleContains(i1, i2, v1, v2)){
             // frame is fully in image
             renderStrategy = "sliceInterior";
-            ctx.drawImage(image, this.world.x, this.world.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, this.worldPosition.x, this.worldPosition.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
         } else if(rectanglesIntersect(v1, v2, i1, i2)){
             // image and frame partially intersect
             renderStrategy = "sliceExterior";
