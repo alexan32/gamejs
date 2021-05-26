@@ -32,13 +32,23 @@ export var objectRegister = {
         this.renderList.sort((a, b)=> {
             return a.renderLayer - b.renderLayer;
         });
-        console.log(this.renderList);
+        console.log("renderList: ", this.renderList);
     },
 
     // clears the register
     reset: function(){
         this.objects = {};
         this.renderList = [];
+    },
+
+    getByTag: function(tag){
+        var match = [];
+        for (var key in this.objects){
+            if(this.objects[key].tags.includes(tag)){
+                match.push(this.objects[key]);
+            }
+        }
+        return match;
     }
 }
 
@@ -48,6 +58,7 @@ export var objectRegister = {
 export class GameObject{
 
     constructor() {
+        this.tags = [];
         this.id = uuidv4();
         this.renderLayer = 0;
         objectRegister.register(this);

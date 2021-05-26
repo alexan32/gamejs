@@ -8,6 +8,7 @@ import { Coord, loadImage, readJsonFile} from "../../../engine/src/utils.js";
 import { environment as env } from "../environment.js"
 import { Creature } from "../scripts/creature.js";
 import { Camera } from "../scripts/camera.js";
+import { CollisionMap } from "../scripts/collision.js";
 
 export var scene = {
     "init": init,
@@ -39,6 +40,10 @@ function init() {
         var tileImage = await loadImage("../arena/assets/waitingArea.png");
         var tileset = new TileSet(tileImage, env.tileSize, env.tileSize);
         let map = new TiledImage(levelData.map, tileset);
+        let collision = new CollisionMap(levelData.collision, 0, 0);
+        collision.events.on("tileClicked", event=>{
+            console.log(event);
+        });
         
         // game camera
         viewFrame.initialize(map.canvas.width, map.canvas.height, true);
@@ -69,6 +74,10 @@ function init() {
         local.update = (dt)=>{
             controller.update(dt);
         }
+
+
+        console.log(objectRegister.getByTag("creature"));
+
         resolve();
     });
 }

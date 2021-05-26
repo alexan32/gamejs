@@ -23,6 +23,7 @@ export class Creature extends GameObject{
 
     constructor(x, y, animations){
         super();
+        this.tags.push("creature");
 
         this.targetPosition = new Coord(x,y);
         this.position = this.targetPosition;
