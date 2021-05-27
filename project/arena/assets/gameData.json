@@ -1,0 +1,32 @@
+{
+    "creatures":{
+        "0":{
+            "name": "Captain Mercer",
+            "hp": 25,
+            "movement": 5,
+            "inventory":["0"],
+            "initiative": 0
+        }
+    },
+    "items":{
+        "0":{
+            "name": "sword",
+            "weight": 5,
+            "value": 25,
+            "weapon": {
+                "damage": "1d6",
+                "type": "melee",
+                "range": 1
+            }  
+        }
+    },
+    "skills":{
+        "0":{
+            "name": "firebolt",
+            "cooldown": 1,
+            "damage": "1d4",
+            "type": "ranged",
+            "range": 10
+        }
+    }
+}

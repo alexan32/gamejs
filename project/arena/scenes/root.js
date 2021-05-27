@@ -1,11 +1,9 @@
 // engine imports
 import { GameObject, objectRegister } from "../../../engine/src/gameObject.js";
-import { canvas, input } from "../../../engine/main.js";
+import { canvas } from "../../../engine/main.js";
 
 // project imports
-import { environment as env } from "../environment.js";
-import { scene as waitingMap } from "./waitingMap.js";
-import { scene as ui } from "./uitest.js";
+import { scene as waitingMap } from "./waitingMap.js"
 
 window.scene = {
     "init": init,
