@@ -1,11 +1,16 @@
 import { objectRegister } from "../../../engine/src/gameObject.js";
+import { canvas } from "../../../engine/main.js";
 import { State, StateMachine } from "../../../engine/src/utils.js";
-
+import { InterfaceTile, InterfaceRoot } from "./interface.js";
 
 export class Controller{
 
     /*  camera: the scenes camera object 
-        playerList: list of player controllable creature ids
+        collisionMap: the collision data of the current map
+        partList: list of player controlled creatures
+        initializedCreatures: creatures who have had their subscriptions initialized
+        combatants: list of creatures
+        machine: state machine
     */
     constructor(camera, collisionMap, partyList){
         this.camera = camera;
@@ -15,24 +20,14 @@ export class Controller{
         this.initializedCreatures = [];
         this.updateCreatureSubscriptions();
 
+        this.combatants = [];
+        this.turnIndex = 0;
+        this.initiativeTracker = buildInitiativeTracker();
+
         this.machine = this.buildMachine();
+
     }
 
-    startCombat(hostileGroupOne, hostileGroupTwo=[], allies=[]){}
-
-    // currently controlled party member
-    setPartyLeader(){}
-
-    // navigation out of combat
-    movePartyTo(){}
-
-    // move single party member (out of combat?)
-    moveTo(){}
-
-    /*  gets all gameobjects with the creature tag. If
-        creature not in initialized list, create event
-        subscriptions
-    */
     updateCreatureSubscriptions(){
         var creatureList = objectRegister.getByTag("creature");
         creatureList.forEach(creature=>{
@@ -52,16 +47,8 @@ export class Controller{
 
         // -------------------------------------------
         const FREE_ROAM = new State({
-            "combatStart": "COMBAT_START"
+            "combatStart": "IN_COMBAT"
         });
-        // -------------------------------------------
-        const COMBAT_START = new State({
-            "combatInitComplete": "IN_COMBAT"
-        });
-        COMBAT_START.onEnter = ()=>{
-            // 1. display combat start ui animation
-            // 2. roll initiative for each participant
-        };
         // -------------------------------------------
         const IN_COMBAT = new State({
             "combatEnd": "FREEROAM"
@@ -69,10 +56,60 @@ export class Controller{
 
         machine.states = {
             "FREE_ROAM": FREE_ROAM,
-            "COMBAT_START": COMBAT_START,
             "IN_COMBAT": IN_COMBAT
         };
         return machine;
     }
 
+    /*  enemies: list of enemy creatures
+    */
+    startCombat(enemies){
+        this.combatants = this.partyList.concat(enemies);
+        this.rollInitiative();
+        this.turnIndex = 0;
+        this.camera.setTargetPosition(this.combatants[0].position.x, this.combatants[0].position.y);
+        this.initiativeTracker.show();
+    }
+
+    incrementTurn(){
+        this.turnIndex = (this.turnIndex < this.combatants.length) ? this.turnIndex + 1 : 0;
+        this.camera.setTargetPosition(this.combatants[this.turnIndex].position.x, this.combatants[this.turnIndex].position.y);
+    }
+
+    rollInitiative(){
+        this.combatants.forEach(creature => {
+            creature.initiativeRoll = Dice(creature.data.initiative)
+        });
+        this.combatants.sort((a, b)=>{
+            return b.initiativeRoll - a.initiativeRoll;
+        });
+        console.info("Combatants: ", this.combatants);
+    }
+
+}
+
+function buildInitiativeTracker(combatants){
+
+    var horizontalOffset = canvas.width * 0.05;
+    var verticalOffset = canvas.height * 0.0125;
+
+    var rootImage = document.createElement("canvas")
+    rootImage.width =  canvas.width - 2 * horizontalOffset;
+    rootImage.height = 100;
+    var ctx = rootImage.getContext("2d");
+    ctx.beginPath()
+    ctx.strokeStyle = "blue";
+    ctx.lineWidth = "6";
+    ctx.rect(0, 0, rootImage.width, rootImage.height);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(0, 0, 255, 0.3)";
+    ctx.fillRect(0,0, rootImage.width, rootImage.height);
+
+    var root = new InterfaceTile(rootImage, horizontalOffset, verticalOffset, canvas.width - 2 * horizontalOffset, 100);
+
+
+
+    var ui = new InterfaceRoot(root);
+
+    return ui;
 }

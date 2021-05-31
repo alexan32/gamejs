@@ -5,7 +5,7 @@
             "hp": 25,
             "movement": 5,
             "inventory":["0"],
-            "initiative": 0
+            "initiative": "1d20+2"
         }
     },
     "items":{

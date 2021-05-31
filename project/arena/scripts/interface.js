@@ -1,6 +1,37 @@
 import { EventBus } from "../../../engine/src/utils.js";
-import {input} from "../../../engine/main.js";
+import { input } from "../../../engine/main.js";
+import { GameObject } from "../../../engine/src/gameObject.js";
+import { environment as env } from "../environment.js";
 
+
+export class InterfaceRoot extends GameObject{
+
+    constructor(rootTile){
+        super();
+        this.rootTile = rootTile;
+        this.initialized = false;
+        this.renderLayer = env.uiLayer;
+    }
+
+    update(dt){}
+
+    draw(ctx){
+        if(this.initialized){
+            this.rootTile.draw(ctx, 0, 0);
+        }
+    }
+
+    show(){
+        this.rootTile.initialize();
+        this.initialized = true;
+    }
+
+    hide(){
+        this.rootTile.destroy();
+        this.initialized = false;
+    }
+
+}
 
 export class InterfaceTile{
 
@@ -20,17 +51,17 @@ export class InterfaceTile{
 
         this.events = new EventBus();
         this.subscriptions = {};
-        const eventOverTile = (event)=>{
-            return (event.x >= this.screenX 
-                && event.x <= this.screenX + this.w 
-                && event.y >= this.screenY 
-                && event.y <= this.screenY + this.h
-            )
-        }
 
-        this.subscriptions["mousedown"] = input.events.on("mousedown", this.onMouseDown.bind(this), eventOverTile.bind(this));
+        this.subscriptions["mousedown"] = input.events.on("mousedown", this.onMouseDown.bind(this), this.eventOverTile.bind(this));
     }
 
+    eventOverTile(event){
+        return (event.x >= this.screenX 
+            && event.x <= this.screenX + this.w 
+            && event.y >= this.screenY 
+            && event.y <= this.screenY + this.h
+        );
+    }
 
     /*  x,y is the calculated screen position of parent, so that 
         child can calculate their own screen position 
@@ -49,6 +80,13 @@ export class InterfaceTile{
 
     onMouseDown(event){
         console.log(event);
+    }
+
+    initialize(){
+        this.subscriptions["mousedown"] = input.events.on("mousedown", this.onMouseDown.bind(this), this.eventOverTile.bind(this));
+        this.children.forEach(child=>{
+            child.initialize();
+        });
     }
 
     destroy(){

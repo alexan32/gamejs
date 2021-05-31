@@ -53,7 +53,8 @@ function init() {
         enemy.data = JSON.parse(JSON.stringify(characterData));
 
         // controller
-        let controller = new Controller(camera, collision, [pc.id, pc2.id]);
+        let controller = new Controller(camera, collision, [pc, pc2]);
+        controller.startCombat([enemy]);
 
         // map update
         let local = new GameObject();
