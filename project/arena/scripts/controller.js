@@ -22,7 +22,7 @@ export class Controller{
 
         this.combatants = [];
         this.turnIndex = 0;
-        this.initiativeTracker = buildInitiativeTracker();
+        // this.initiativeTracker = buildInitiativeTracker();
 
         this.machine = this.buildMachine();
 
@@ -68,7 +68,7 @@ export class Controller{
         this.rollInitiative();
         this.turnIndex = 0;
         this.camera.setTargetPosition(this.combatants[0].position.x, this.combatants[0].position.y);
-        this.initiativeTracker.show();
+        // this.initiativeTracker.show();
     }
 
     incrementTurn(){

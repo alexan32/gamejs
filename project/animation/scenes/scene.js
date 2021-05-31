@@ -32,7 +32,7 @@ function init() {
         // let tileset = new TileSet(img, 16, 16);
         // let background = new TiledImage(level.map, tileset);
 
-        let spriteImage = await loadImage("../animation/assets/knight.png");
+        let spriteImage = await loadImage("../animation/assets/image/knight.png");
         let spritesheet = new TileSet(spriteImage, 32, 32);
         let animations = buildCreatureAnimations(spritesheet);
         let index = 0;

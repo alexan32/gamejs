@@ -23,7 +23,7 @@ function init() {
 
         // load config
         let levelData = readJsonFile("../arena/assets/waitingArea.json");
-        let gameData = readJsonFile("../arena/assets/gameData.json");
+        let gameData = readJsonFile("../arena/assets/json/gameData.json");
 
         // create map
         var tileImage = await loadImage("../arena/assets/waitingArea.png");
@@ -40,7 +40,7 @@ function init() {
 
         // create creatures
         var characterData = gameData.creatures["0"];
-        var spriteImage = await loadImage("../arena/assets/knight.png");
+        var spriteImage = await loadImage("../arena/assets/image/knight.png");
         var spriteTiles = new TileSet(spriteImage, env.tileSize, env.tileSize);
         
         let pc = new Creature(6, 6, spriteTiles.toAnimationList());

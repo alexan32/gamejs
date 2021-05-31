@@ -4,7 +4,7 @@ import { canvas } from "../../../engine/main.js"
 
 // project imports
 import { environment as env } from "../environment.js"
-import { InterfaceTile } from "../scripts/interface.js";
+import { InterfaceTile, InterfaceRoot } from "../scripts/interface.js";
 import { loadImage } from "../../../engine/src/utils.js";
 
 export var scene = {
@@ -19,25 +19,10 @@ let myUi;
 function init() {
     return new Promise(async resolve => {
 
-        var rootImage = makeARect( canvas.width * 0.95, canvas.height * 0.2, "blue");
-        var rootPanel = new InterfaceTile(rootImage, 0, 0, rootImage.width, rootImage.height, "root");
-        var panelX = canvas.width * 0.025;
-        var panelY = canvas.height * 0.8;
+        var actionBar = buildActionBar();
+        actionBar.show();
 
-        var portraitImage = await loadImage("./assets/knight_portrait.png");
-        var portrait = new InterfaceTile(portraitImage, 10, 10, 64, 64, "portrait");
-        portrait.setParent(rootPanel);
-
-        console.log(rootPanel.children);
-
-        myUi = new GameObject();
-        myUi.renderLayer = env.uiLayer;
-        myUi.rootTile = rootPanel;
-        myUi.draw = (ctx)=>{
-            rootPanel.draw(ctx, panelX, panelY);
-        }
-
-        // objectRegister.buildRenderList();
+        objectRegister.buildRenderList();
         resolve();
     });
 }
@@ -57,4 +42,28 @@ function makeARect(w, h, fill){
     tctx.fillStyle = fill;
     tctx.fillRect(0, 0, w, h);
     return cnvs;
+}
+
+function buildActionBar(){
+
+    var horizontalOffset = canvas.width * 0.05;
+    var verticalOffset = canvas.height - (canvas.height * 0.0125) - 100;
+
+    var rootImage = makeARect(canvas.width - 2 * horizontalOffset, 100, "rgba(0, 0, 255, 0.3)")
+    var ctx = rootImage.getContext("2d");
+    ctx.beginPath()
+    ctx.strokeStyle = "blue";
+    ctx.lineWidth = "6";
+    ctx.rect(0, 0, rootImage.width, rootImage.height);
+    ctx.stroke();
+
+    var root = new InterfaceTile(rootImage, horizontalOffset, verticalOffset, canvas.width - 2 * horizontalOffset, 100);
+
+    var portraitImage = window.gameData.portraits.getTile(0);
+    var portrait = new InterfaceTile(portraitImage, 6, 6, 90, 90, "portrait");
+    portrait.setParent(root);
+
+    var ui = new InterfaceRoot(root);
+
+    return ui;
 }
