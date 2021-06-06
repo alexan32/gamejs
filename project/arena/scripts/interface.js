@@ -31,6 +31,26 @@ export class InterfaceRoot extends GameObject{
         this.initialized = false;
     }
 
+    getTileById(id){
+        var targetTile = null;
+        var done = false;
+        var seen = [this.rootTile];
+        while(!done){
+            var current = seen.shift()
+            if(current){
+                if(current.id === id){
+                    targetTile = current;
+                    break;
+                }else{
+                    seen.concat(current.children);
+                }
+            }else{
+                done = true;
+            }
+        }
+        return targetTile;
+    }
+
 }
 
 export class InterfaceTile{

@@ -1,9 +1,9 @@
-import { objectRegister } from "../../../engine/src/gameObject.js";
-import { canvas } from "../../../engine/main.js";
+import { GameObject, objectRegister } from "../../../engine/src/gameObject.js";
+import { input,canvas } from "../../../engine/main.js";
 import { State, StateMachine } from "../../../engine/src/utils.js";
 import { InterfaceTile, InterfaceRoot } from "./interface.js";
 
-export class Controller{
+export class Controller extends GameObject{
 
     /*  camera: the scenes camera object 
         collisionMap: the collision data of the current map
@@ -13,9 +13,12 @@ export class Controller{
         machine: state machine
     */
     constructor(camera, collisionMap, partyList){
+        super();
+
         this.camera = camera;
         this.collisionMap = collisionMap;
         this.partyList = partyList;
+        this.partyLeaderIndex = null;
 
         this.initializedCreatures = [];
         this.updateCreatureSubscriptions();
@@ -38,8 +41,28 @@ export class Controller{
         });
     }
 
+    update(dt){
+        const state = this.machine.currentState
+        if(state == "FREEROAM" && this.partyLeaderIndex !== null){
+            this.wasdMove();
+        }
+        if(input.pressed["Escape"]){
+            
+            this.camera.freeMove();
+            this.partyLeaderIndex = null;
+        }
+    }
+
     onCreatureClicked(event){
-        console.log(objectRegister.objects[event.id]);
+        var clicked = objectRegister.objects[event.id];
+        console.log(clicked);
+
+        const inPartyIndex = this.partyList.indexOf(clicked);
+        // set party leader
+        if(this.machine.currentState == "FREEROAM" && inPartyIndex != -1){
+            this.partyLeaderIndex = inPartyIndex;
+            this.camera.follow(this.partyList[this.partyLeaderIndex].worldPosition);
+        }
     }
 
     buildMachine(){
@@ -86,30 +109,29 @@ export class Controller{
         console.info("Combatants: ", this.combatants);
     }
 
-}
+    wasdMove(){
+        if(this.partyList[this.partyLeaderIndex].machine.currentState == "IDLE"){
+            const partyLeaderPosition = this.partyList[this.partyLeaderIndex].position;
+            // this.partyList[this.partyLeaderIndex].setTargetPosition(partyLeaderPosition.x + 0.5, partyLeaderPosition.y + 0.5);
+            var x = 0;
+            var y = 0;
+            if(input.pressed["KeyA"]){
+                x -= 1;
+            }
+            if(input.pressed["KeyD"]){
+                x += 1;
+            }
+            if(input.pressed["KeyW"]){
+                y -= 1;
+            }
+            if(input.pressed["KeyS"]){
+                y += 1;
+            }
+            if(x !=0 || y!= 0){
+                const partyLeaderPosition = this.partyList[this.partyLeaderIndex].position;
+                this.partyList[this.partyLeaderIndex].setTargetPosition(partyLeaderPosition.x + x, partyLeaderPosition.y + y);
+            }
+        }
+    }
 
-function buildInitiativeTracker(combatants){
-
-    var horizontalOffset = canvas.width * 0.05;
-    var verticalOffset = canvas.height * 0.0125;
-
-    var rootImage = document.createElement("canvas")
-    rootImage.width =  canvas.width - 2 * horizontalOffset;
-    rootImage.height = 100;
-    var ctx = rootImage.getContext("2d");
-    ctx.beginPath()
-    ctx.strokeStyle = "blue";
-    ctx.lineWidth = "6";
-    ctx.rect(0, 0, rootImage.width, rootImage.height);
-    ctx.stroke();
-    ctx.fillStyle = "rgba(0, 0, 255, 0.3)";
-    ctx.fillRect(0,0, rootImage.width, rootImage.height);
-
-    var root = new InterfaceTile(rootImage, horizontalOffset, verticalOffset, canvas.width - 2 * horizontalOffset, 100);
-
-
-
-    var ui = new InterfaceRoot(root);
-
-    return ui;
 }

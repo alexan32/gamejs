@@ -3,8 +3,9 @@ import { GameObject, objectRegister } from "../../../engine/src/gameObject.js";
 import { canvas } from "../../../engine/main.js";
 
 // project imports
-import { scene as gameData } from "./gameData.js"
-import { scene as ui } from "./uitest.js"
+import { scene as gameData } from "./gameData.js";
+import { scene as ui } from "./uitest.js";
+import { scene as waitingMap } from "./waitingMap.js";
 
 window.scene = {
     "init": init,
@@ -14,9 +15,9 @@ window.scene = {
 function init() {
     return new Promise(async resolve => {
 
-        // await waitingMap.init();
         await gameData.init();
-        await ui.init();
+        // await ui.init();
+        await waitingMap.init();
         // console.log(input.events);
 
         let background = new GameObject();

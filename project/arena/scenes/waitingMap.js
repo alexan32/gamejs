@@ -22,11 +22,11 @@ function init() {
     return new Promise(async resolve => {
 
         // load config
-        let levelData = readJsonFile("../arena/assets/waitingArea.json");
+        let levelData = readJsonFile("../arena/assets/json/waitingArea.json");
         let gameData = readJsonFile("../arena/assets/json/gameData.json");
 
         // create map
-        var tileImage = await loadImage("../arena/assets/waitingArea.png");
+        var tileImage = await loadImage("../arena/assets/image/waitingArea.png");
         var tileset = new TileSet(tileImage, env.tileSize, env.tileSize);
         let map = new TiledImage(levelData.map, tileset);
         let collision = new CollisionMap(levelData.collision, 0, 0);
@@ -48,13 +48,14 @@ function init() {
 
         let pc2 = new Creature(6, 7, spriteTiles.toAnimationList());
         pc2.data = JSON.parse(JSON.stringify(characterData));
+        // pc2.setTargetPosition(10, 10);
 
         let enemy = new Creature(10, 11, spriteTiles.toAnimationList());
         enemy.data = JSON.parse(JSON.stringify(characterData));
 
         // controller
         let controller = new Controller(camera, collision, [pc, pc2]);
-        controller.startCombat([enemy]);
+        // controller.startCombat([enemy]);
 
         // map update
         let local = new GameObject();

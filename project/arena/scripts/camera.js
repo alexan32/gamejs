@@ -9,11 +9,11 @@ import { canvas, viewFrame, input } from "../../../engine/main.js";
     targetPosition: x,y of the tile this creature is trying to reach
     screenPosition: x,y coordinates on which to render
     events:
-        - arrived: triggers when the creature reaches the target position
+        - wait: triggers when the creature reaches the target position
         - moving: triggers when the creature leaves its current position
     machine states:
-        - ARRIVED: the camera is no
-        - MOVINGTOWARD: the creature is moving towards target location
+        - WAIT: the camera is no
+        - MOVINGTO: the creature is moving towards target location
 */
 
 export class Camera extends GameObject{
@@ -38,8 +38,14 @@ export class Camera extends GameObject{
         this.screenPosition = new Coord(x*env.tileSize, y*env.tileSize);
     }
 
+    setMoveSpeed(spd){
+        this.moveSpeed = spd;
+    }
+
     update(dt){
-        if(this.machine.currentState == "FREEMOVE"){
+        const state = this.machine.currentState
+
+        if(state == "FREEMOVE"){
             var x = 0;
             var y = 0;
             if(input.pressed["KeyA"]){
@@ -56,64 +62,96 @@ export class Camera extends GameObject{
             }
             this.screenPosition.x += dt * x;
             this.screenPosition.y += dt * y;
-        }else if(!this.arrived()){
-            this.moveToTarget(dt);
+        }else if(state == "MOVINGTO" && !this.arrived()){
+            this.moveTowardsTarget(dt);
         }
     }
 
-    setTargetPosition(x, y){
+    moveTo(x, y){
         this.targetPosition = new Coord(x, y);
-        this.machine.update("targetSet");
+        this.machine.update("movingTo");
     }
 
-    moveToTarget(dt){
-        // calculations
-        this.machine.update("moving");
+    follow(coord){
+        this.targetPosition = coord;
+        viewFrame.setTarget(coord, env.tileSize/2, env.tileSize/2);
+        this.machine.update("following");
+    }
+
+    freeMove(){
+        this.machine.update("freeMove");
+    }
+
+    moveTowardsTarget(dt){
+
         var targetX = parseInt(this.targetPosition.x * env.tileSize);
         var targetY = parseInt(this.targetPosition.y * env.tileSize);
         var angleToTarget = angleRadians(this.screenPosition.x, this.screenPosition.y, targetX, targetY);
         var horizontal = Math.cos(angleToTarget) * this.moveSpeed * dt;
         var vertical = Math.sin(angleToTarget) * this.moveSpeed * dt;
 
-        // perform move
         this.screenPosition.x += horizontal;
         this.screenPosition.y += vertical;
+
         if(distanceBetweenTwoPoints(this.screenPosition.x, this.screenPosition.y, targetX, targetY) < 1){
             this.screenPosition.x = targetX;
             this.screenPosition.y = targetY;
             this.position = this.targetPosition;
-            this.machine.update("arrived");
+            if(this.machine.currentState == "MOVINGTO"){
+                this.machine.update("wait");
+            }
         }
     }
 
     buildMachine(){
         var machine = new StateMachine("FREEMOVE");
         // ------------------------------------------------
-        var ARRIVED = new State({
-            "moving": "MOVINGTOWARD",
-            "giveControl": "FREEMOVE"
+        const WAIT = new State({
+            "movingTo": "MOVINGTO",
+            "freeMove": "FREEMOVE"
         });
-        ARRIVED.onEnter=()=>{
-            console.log("state is ARRIVED");
-            this.events.trigger("arrived", {id: this.id});
+        WAIT.onEnter=()=>{
+            console.log("camera state is WAIT");
+            this.events.trigger("wait", {id: this.id});
         }
         // ------------------------------------------------
-        var MOVINGTOWARD = new State({
-            "arrived": "ARRIVED"
+        const MOVINGTO = new State({
+            "wait": "WAIT"
         });
-        MOVINGTOWARD.onEnter=()=>{
-            console.log("state is MOVINGTOWARD");
+        MOVINGTO.onEnter=()=>{
+            console.log("camera state is MOVINGTO");
             this.events.trigger("moving", {id: this.id});
         }
         // ------------------------------------------------
-        var FREEMOVE = new State({
-            "takeControl": "ARRIVED",
-            "targetSet": "MOVINGTOWARD"
-        })
+        const FREEMOVE = new State({
+            "wait": "WAIT",
+            "movingTo": "MOVINGTO",
+            "following": "FOLLOWING"
+        });
+        FREEMOVE.onEnter=()=>{
+            this.events.trigger("freeMove", {id: this.id});
+            console.log("camera state is FREEMOVE");
+        }
+        // ------------------------------------------------
+        const FOLLOWING = new State({
+            "setTarget": "MOVINGTO",
+            "freeMove": "FREEMOVE"
+        });
+        FOLLOWING.onEnter=()=>{
+            this.events.trigger("following", {id: this.id});
+            console.log("camera state is FOLLOWING");
+        }
+        FOLLOWING.onExit=function(){
+            this.screenPosition.x = viewFrame.target.x;
+            this.screenPosition.y = viewFrame.target.y;
+            viewFrame.setTarget(this.screenPosition, env.tileSize/2, env.tileSize/2);
+        }.bind(this);
+        // ------------------------------------------------
         machine.states = {
             "FREEMOVE": FREEMOVE,
-            "ARRIVED": ARRIVED,
-            "MOVINGTOWARD": MOVINGTOWARD
+            "WAIT": WAIT,
+            "MOVINGTO": MOVINGTO,
+            "FOLLOWING": FOLLOWING
         }
         return machine;
     }
