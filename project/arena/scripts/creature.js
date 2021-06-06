@@ -33,6 +33,7 @@ export class Creature extends GameObject{
         this.events = new EventBus();
         this.machine = this.buildMachine();
         
+        this.path = [];
         this.animations = animations;
         this.currentAnimation = animations[0];
         this.renderLayer = env.creatureLayer;
@@ -66,6 +67,12 @@ export class Creature extends GameObject{
         viewFrame.drawImage(this.currentAnimation.getCurrentFrame(), this.worldPosition.x, this.worldPosition.y, ctx);
     }
 
+    setPath(path){
+        this.path = path;
+        const n = path.shift();
+        this.setTargetPosition(n.x, n.y);
+    }
+
     setTargetPosition(x, y){
         this.targetPosition = new Coord(x, y);
     }
@@ -97,7 +104,11 @@ export class Creature extends GameObject{
             this.worldPosition.x = targetX;
             this.worldPosition.y = targetY;
             this.position = this.targetPosition;
-            this.machine.update("arrived");
+            if(this.path.length > 0){
+                this.targetPosition = this.path.shift();
+            }else{
+                this.machine.update("arrived");
+            }
         }
     }
 

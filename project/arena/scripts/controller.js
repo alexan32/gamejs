@@ -1,5 +1,5 @@
 import { GameObject, objectRegister } from "../../../engine/src/gameObject.js";
-import { input,canvas } from "../../../engine/main.js";
+import { input, canvas } from "../../../engine/main.js";
 import { State, StateMachine } from "../../../engine/src/utils.js";
 import { InterfaceTile, InterfaceRoot } from "./interface.js";
 
@@ -16,21 +16,22 @@ export class Controller extends GameObject{
         super();
 
         this.camera = camera;
+
         this.collisionMap = collisionMap;
+        this.collisionMap.events.on("tileClicked", this.onTileClicked.bind(this));
+
         this.partyList = partyList;
         this.partyLeaderIndex = null;
-
         this.initializedCreatures = [];
         this.updateCreatureSubscriptions();
-
         this.combatants = [];
         this.turnIndex = 0;
-        // this.initiativeTracker = buildInitiativeTracker();
 
         this.machine = this.buildMachine();
-
     }
 
+    /*  Makes certain that a subscription exists for each creature in the scene
+    */
     updateCreatureSubscriptions(){
         var creatureList = objectRegister.getByTag("creature");
         creatureList.forEach(creature=>{
@@ -41,15 +42,26 @@ export class Controller extends GameObject{
         });
     }
 
-    update(dt){
-        const state = this.machine.currentState
-        if(state == "FREEROAM" && this.partyLeaderIndex !== null){
-            this.wasdMove();
-        }
-        if(input.pressed["Escape"]){
-            
-            this.camera.freeMove();
-            this.partyLeaderIndex = null;
+    /*  Used for collision path finding to prevent pathfinding through creatures
+    */
+    getTempCollisions(){
+        const creatureList = objectRegister.getByTag("creature");
+        return creatureList.map(creature => {
+            return creature.position;
+        });
+    }
+
+    onTileClicked(event){
+        console.log(event);
+
+        //walk character to position
+        const tempCollisions = this.getTempCollisions();
+        if(this.machine.currentState == "FREEROAM" && this.partyLeaderIndex != null && this.collisionMap.isWalkableTile(event.x, event.y, tempCollisions)){
+            const pos = this.partyList[this.partyLeaderIndex].position;
+            const path = this.collisionMap.astar(pos.x, pos.y, event.x, event.y, tempCollisions);
+            if(path.length > 0){
+                this.partyList[this.partyLeaderIndex].setPath(path);
+            }
         }
     }
 
@@ -65,49 +77,61 @@ export class Controller extends GameObject{
         }
     }
 
+    update(dt){
+        const state = this.machine.currentState
+        if(state == "FREEROAM" && this.partyLeaderIndex !== null){
+            this.wasdMove();
+        }
+        if(input.pressed["Escape"]){
+
+            this.camera.freeMove();
+            this.partyLeaderIndex = null;
+        }
+    }
+
     buildMachine(){
         var machine = new StateMachine("FREEROAM");
 
         // -------------------------------------------
-        const FREE_ROAM = new State({
-            "combatStart": "IN_COMBAT"
+        const FREEROAM = new State({
+            "combatStart": "COMBAT"
         });
         // -------------------------------------------
-        const IN_COMBAT = new State({
+        const COMBAT = new State({
             "combatEnd": "FREEROAM"
         });
 
         machine.states = {
-            "FREE_ROAM": FREE_ROAM,
-            "IN_COMBAT": IN_COMBAT
+            "FREEROAM": FREEROAM,
+            "COMBAT": COMBAT
         };
         return machine;
     }
 
     /*  enemies: list of enemy creatures
     */
-    startCombat(enemies){
-        this.combatants = this.partyList.concat(enemies);
-        this.rollInitiative();
-        this.turnIndex = 0;
-        this.camera.setTargetPosition(this.combatants[0].position.x, this.combatants[0].position.y);
-        // this.initiativeTracker.show();
-    }
+    // startCombat(enemies){
+    //     this.combatants = this.partyList.concat(enemies);
+    //     this.rollInitiative();
+    //     this.turnIndex = 0;
+    //     this.camera.setTargetPosition(this.combatants[0].position.x, this.combatants[0].position.y);
+    //     // this.initiativeTracker.show();
+    // }
 
-    incrementTurn(){
-        this.turnIndex = (this.turnIndex < this.combatants.length) ? this.turnIndex + 1 : 0;
-        this.camera.setTargetPosition(this.combatants[this.turnIndex].position.x, this.combatants[this.turnIndex].position.y);
-    }
+    // incrementTurn(){
+    //     this.turnIndex = (this.turnIndex < this.combatants.length) ? this.turnIndex + 1 : 0;
+    //     this.camera.setTargetPosition(this.combatants[this.turnIndex].position.x, this.combatants[this.turnIndex].position.y);
+    // }
 
-    rollInitiative(){
-        this.combatants.forEach(creature => {
-            creature.initiativeRoll = Dice(creature.data.initiative)
-        });
-        this.combatants.sort((a, b)=>{
-            return b.initiativeRoll - a.initiativeRoll;
-        });
-        console.info("Combatants: ", this.combatants);
-    }
+    // rollInitiative(){
+    //     this.combatants.forEach(creature => {
+    //         creature.initiativeRoll = Dice(creature.data.initiative)
+    //     });
+    //     this.combatants.sort((a, b)=>{
+    //         return b.initiativeRoll - a.initiativeRoll;
+    //     });
+    //     console.info("Combatants: ", this.combatants);
+    // }
 
     wasdMove(){
         if(this.partyList[this.partyLeaderIndex].machine.currentState == "IDLE"){

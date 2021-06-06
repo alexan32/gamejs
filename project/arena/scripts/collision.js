@@ -11,6 +11,7 @@ export class CollisionMap{
     constructor(arr, x, y){
         this.map = arr;
         this.copy = JSON.parse(JSON.stringify(this.map));
+
         this.dimensionY = this.map.length;
         this.dimensionX = this.map[0].length;
 
@@ -19,6 +20,8 @@ export class CollisionMap{
         this.events = new EventBus();
         this.subscriptions = {};
         this.subscriptions["mousedown"] = input.events.on("mousedown", this.onMouseDown.bind(this));
+
+        this.temporaryCollisions = [];
     }
 
     onMouseDown(event){
@@ -31,7 +34,9 @@ export class CollisionMap{
     }
 
     /* A* Algorithm implementation. Returns path to goal(x2, y2) from start(x1, y1) as list of coordinates*/
-    astar(x1, y1, x2, y2){
+    astar(x1, y1, x2, y2, tempCollisions=[]){
+        this.copy = this.getPopulatedMap(tempCollisions)
+
         var buildNode = (x, y, g, h, parent)=>{return {"x":x, "y":y, "g":g, "h":h, "f":g+h, "parent":parent};}
         var open = [buildNode(x1, y1, 0, 0, null)];
         var closed = [];
@@ -102,10 +107,10 @@ export class CollisionMap{
 
 
     /* Returns a list with a Coord for each node that can be reached from position x,y with a set movement*/
-    getAvailableMoves(x, y, movement){
+    getAvailableMoves(x, y, movement, tempCollisions=[]){
         var seen = [new Coord(x, y).toString()];
         var visited = [];
-        this.copy = JSON.parse(JSON.stringify(this.map));
+        this.copy = this.getPopulatedMap(tempCollisions);
         this.copy[y][x] = 0;
         while(seen.length > 0){
             var nodeString = seen.shift().split(",");
@@ -179,16 +184,23 @@ export class CollisionMap{
         return this.copy[y][x];
     };
 
+    /*  tile is not a collision
+    */
+    isWalkableTile(x, y, tempCollisions=[]){
+        this.copy = this.getPopulatedMap(tempCollisions);
+        const tileData = this.getNode(x, y);
+        return tileData != -1 && tileData != null
+    }
 
     /*  Use this to update the copy with variable collisions before pathfinding.
         Takes an array of Coords as input.
     */
-    populate(arr){
+    getPopulatedMap(tempCollisions=[]){
         this.copy = JSON.parse(JSON.stringify(this.map));
-        arr.forEach(coord => {
+        tempCollisions.forEach(coord => {
             this.copy[coord.y][coord.x] = -1;
         });
-
+        return this.copy
     }
 
 
