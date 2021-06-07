@@ -30,53 +30,6 @@ export class Controller extends GameObject{
         this.machine = this.buildMachine();
     }
 
-    /*  Makes certain that a subscription exists for each creature in the scene
-    */
-    updateCreatureSubscriptions(){
-        var creatureList = objectRegister.getByTag("creature");
-        creatureList.forEach(creature=>{
-            if(this.initializedCreatures.indexOf(creature.id) == -1){
-                creature.events.on("clicked", this.onCreatureClicked.bind(this));
-                this.initializedCreatures.push(creature.id);
-            }
-        });
-    }
-
-    /*  Used for collision path finding to prevent pathfinding through creatures
-    */
-    getTempCollisions(){
-        const creatureList = objectRegister.getByTag("creature");
-        return creatureList.map(creature => {
-            return creature.position;
-        });
-    }
-
-    onTileClicked(event){
-        console.log(event);
-
-        //walk character to position
-        const tempCollisions = this.getTempCollisions();
-        if(this.machine.currentState == "FREEROAM" && this.partyLeaderIndex != null && this.collisionMap.isWalkableTile(event.x, event.y, tempCollisions)){
-            const pos = this.partyList[this.partyLeaderIndex].position;
-            const path = this.collisionMap.astar(pos.x, pos.y, event.x, event.y, tempCollisions);
-            if(path.length > 0){
-                this.partyList[this.partyLeaderIndex].setPath(path);
-            }
-        }
-    }
-
-    onCreatureClicked(event){
-        var clicked = objectRegister.objects[event.id];
-        console.log(clicked);
-
-        const inPartyIndex = this.partyList.indexOf(clicked);
-        // set party leader
-        if(this.machine.currentState == "FREEROAM" && inPartyIndex != -1){
-            this.partyLeaderIndex = inPartyIndex;
-            this.camera.follow(this.partyList[this.partyLeaderIndex].worldPosition);
-        }
-    }
-
     update(dt){
         const state = this.machine.currentState
         if(state == "FREEROAM" && this.partyLeaderIndex !== null){
@@ -157,5 +110,51 @@ export class Controller extends GameObject{
             }
         }
     }
+
+    /*  Makes certain that a subscription exists for each creature in the scene
+    */
+    updateCreatureSubscriptions(){
+        var creatureList = objectRegister.getByTag("creature");
+        creatureList.forEach(creature=>{
+            if(this.initializedCreatures.indexOf(creature.id) == -1){
+                creature.events.on("clicked", this.onCreatureClicked.bind(this));
+                creature.events.on("targetSet", this.updateTempCollisions.bind(this));
+                this.initializedCreatures.push(creature.id);
+            }
+        });
+    }
+
+    updateTempCollisions(){
+        const creatureList = objectRegister.getByTag("creature");
+        this.collisionMap.tempCollisions = creatureList.map(creature => {
+            return creature.setTargetPosition;
+        });
+    }
+
+    onTileClicked(event){
+        console.log(event);
+
+        //walk character to position
+        if(this.machine.currentState == "FREEROAM" && this.partyLeaderIndex != null && this.collisionMap.isWalkableTile(event.x, event.y)){
+            const pos = this.partyList[this.partyLeaderIndex].position;
+            const path = this.collisionMap.astar(pos.x, pos.y, event.x, event.y);
+            if(path.length > 0){
+                this.partyList[this.partyLeaderIndex].setPath(path);
+            }
+        }
+    }
+
+    onCreatureClicked(event){
+        var clicked = objectRegister.objects[event.id];
+        console.log(clicked);
+
+        const inPartyIndex = this.partyList.indexOf(clicked);
+        // set party leader
+        if(this.machine.currentState == "FREEROAM" && inPartyIndex != -1){
+            this.partyLeaderIndex = inPartyIndex;
+            this.camera.follow(this.partyList[this.partyLeaderIndex].worldPosition);
+        }
+    }
+
 
 }

@@ -75,6 +75,7 @@ export class Creature extends GameObject{
 
     setTargetPosition(x, y){
         this.targetPosition = new Coord(x, y);
+        this.events.trigger("targetSet", this.targetPosition);
     }
 
     moveToTarget(dt){
@@ -106,6 +107,7 @@ export class Creature extends GameObject{
             this.position = this.targetPosition;
             if(this.path.length > 0){
                 this.targetPosition = this.path.shift();
+                this.events.trigger("targetSet", this.targetPosition);
             }else{
                 this.machine.update("arrived");
             }
