@@ -162,3 +162,124 @@ export class Creature extends GameObject{
         this.subscriptions["mousedown"].unsubscribe();
     }
 }
+
+
+export class NavBody extends GameObject{
+
+    constructor(x, y, collisionMap){
+        super();
+
+        this.position = new Coord(x, y);                                    // current tile position
+        this.targetPosition = new Coord(x, y);                              // next tile that body moves into
+        this.destination = new Coord(x, y);                                 // tile at the end of the path
+        this.worldPosition = new Coord(x*env.tileSize, y*env.tileSize);     // position in pixels
+        this.path = [];
+        this.facing = 'S';
+        this.events = new EventBus();
+        this.collisionMap = collisionMap
+    }
+
+    update(dt){
+        if(!this.arrived()){
+            this.moveToTarget(dt);
+        }
+    }
+
+    arrived(){
+        return this.position == this.destination;
+    }
+
+    moveToTarget(){
+        // calculations
+        var targetX = parseInt(this.targetPosition.x * env.tileSize);
+        var targetY = parseInt(this.targetPosition.y * env.tileSize);
+        var angleToTarget = angleRadians(this.worldPosition.x, this.worldPosition.y, targetX, targetY);
+        var horizontal = Math.cos(angleToTarget) * this.moveSpeed * dt;
+        var vertical = Math.sin(angleToTarget) * this.moveSpeed * dt;
+        
+        // update direction state
+        if(Math.abs(vertical) + 0.1 > Math.abs(horizontal)){
+            var dir = (vertical > 0) ? "S": "N";
+        }else{
+            var dir = (horizontal > 0) ? "E": "W";
+        }
+        if(dir != this.facing){
+            this.facing = dir;
+            this.events.trigger("facingChange", {
+                id: this.id,
+                facing: this.facing,
+                position: this.position,
+                targetPosition: this.targetPosition,
+                destination: this.destination,
+                arrived: this.arrived()
+            });
+        }
+
+        // perform move
+        this.worldPosition.x += horizontal;
+        this.worldPosition.y += vertical;
+        if(distanceBetweenTwoPoints(this.worldPosition.x, this.worldPosition.y, targetX, targetY) < 1){
+            this.worldPosition.x = targetX;
+            this.worldPosition.y = targetY;
+            this.position = this.targetPosition;
+            if(this.path.length > 0){
+                this.targetPosition = this.path.shift();
+            }
+            this.events.trigger("positionChange", {
+                id: this.id,
+                facing: this.facing,
+                position: this.position,
+                targetPosition: this.targetPosition,
+                destination: this.destination,
+                arrived: this.arrived()
+            });
+        }
+    }
+
+    setPath(path){
+        this.path = path;
+        this.destination = this.path[this.path.length];
+        if(this.path.length > 0){
+            this.targetPosition = this.path.shift();
+        }
+        this.events.trigger("positionChange", {
+            id: this.id,
+            facing: this.facing,
+            position: this.position,
+            targetPosition: this.targetPosition,
+            destination: this.destination,
+            arrived: this.arrived()
+        });
+    }
+}
+
+class TraficController{
+    
+    constructor(collisionMap){
+        this.collisionMap = collisionMap;
+        this.navBodies = {};
+        this.subscriptions = {};
+    }
+
+    onPositionChange(event){
+        var tempCollisions = Object.keys(this.navBodies).forEach(id => {
+            return this.navBodies[id].targetPosition;
+        });
+        if(!this.collisionMap.canEnter(event.targetPosition.x, event.targetPosition.y, tempCollisions)){
+            var body = this.navBodies[event.id];
+            var path = this.collisionMap.astar(body.position.x, body.position.y, body.destination.x, body.destination.y, tempCollisions);
+            body.setPath(body);
+        }
+    }
+
+    registerNavBody(body){
+        this.subscriptions[body.id] = body.events.on("positionChange", this.onPositionChange.bind(this));
+        this.navBodies[body.id] = body;
+    }
+
+    deregisterNavBody(body){
+        this.subscriptions[body.id].unsubscribe();
+        delete this.navBodies[body.id];
+    }
+
+}

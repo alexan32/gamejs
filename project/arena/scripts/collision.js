@@ -10,7 +10,7 @@ export class CollisionMap{
     */
     constructor(arr, x, y){
         this.map = arr;
-        this.copy = JSON.parse(JSON.stringify(this.map));
+        this.calculationMap = JSON.parse(JSON.stringify(this.map));
 
         this.dimensionY = this.map.length;
         this.dimensionX = this.map[0].length;
@@ -35,7 +35,7 @@ export class CollisionMap{
 
     /* A* Algorithm implementation. Returns path to goal(x2, y2) from start(x1, y1) as list of coordinates*/
     astar(x1, y1, x2, y2, tempCollisions=[]){
-        this.copy = this.getPopulatedMap(tempCollisions)
+        this.calculationMap = this.getPopulatedMap(tempCollisions)
 
         var buildNode = (x, y, g, h, parent)=>{return {"x":x, "y":y, "g":g, "h":h, "f":g+h, "parent":parent};}
         var open = [buildNode(x1, y1, 0, 0, null)];
@@ -110,26 +110,26 @@ export class CollisionMap{
     getAvailableMoves(x, y, movement, tempCollisions=[]){
         var seen = [new Coord(x, y).toString()];
         var visited = [];
-        this.copy = this.getPopulatedMap(tempCollisions);
-        this.copy[y][x] = 0;
+        this.calculationMap = this.getPopulatedMap(tempCollisions);
+        this.calculationMap[y][x] = 0;
         while(seen.length > 0){
             var nodeString = seen.shift().split(",");
             var currentNode = new Coord(nodeString[0], nodeString[1]);
-            var currentValue = this.copy[currentNode.y][currentNode.x];
+            var currentValue = this.calculationMap[currentNode.y][currentNode.x];
             if(currentValue <= movement + 0.001){
                 var neighbors = this.getNeighbors(currentNode.x, currentNode.y);
                 for(var neighbor of neighbors){
                     // Math.round(distanceBetweenTwoPoints(current.x, current.y, successor.x, successor.y) * 10) / 10;
                     var dist = Math.round(distanceBetweenTwoPoints(currentNode.x, currentNode.y, neighbor.x, neighbor.y) * 10) / 10;
-                    if(this.copy[neighbor.y][neighbor.x] > currentValue + dist && currentValue + dist <= movement){
-                        this.copy[neighbor.y][neighbor.x] = currentValue + dist;
+                    if(this.calculationMap[neighbor.y][neighbor.x] > currentValue + dist && currentValue + dist <= movement){
+                        this.calculationMap[neighbor.y][neighbor.x] = currentValue + dist;
                         seen.push(neighbor.toString());
                     }
                 }
             }
             visited.push(currentNode);
         }
-        this.logMap(this.copy);
+        this.logMap(this.calculationMap);
         return visited;
     };
 
@@ -181,13 +181,13 @@ export class CollisionMap{
         if((x < 0 || x > this.dimensionX) || (y < 0 || y > this.dimensionY)){
             return null;
         }
-        return this.copy[y][x];
+        return this.calculationMap[y][x];
     };
 
     /*  tile is not a collision
     */
-    isWalkableTile(x, y, tempCollisions=[]){
-        this.copy = this.getPopulatedMap(tempCollisions);
+    canEnter(x, y, tempCollisions=[]){
+        this.calculationMap = this.getPopulatedMap(tempCollisions);
         const tileData = this.getNode(x, y);
         return tileData != -1 && tileData != null
     }
@@ -196,11 +196,11 @@ export class CollisionMap{
         Takes an array of Coords as input.
     */
     getPopulatedMap(tempCollisions=[]){
-        this.copy = JSON.parse(JSON.stringify(this.map));
+        this.calculationMap = JSON.parse(JSON.stringify(this.map));
         tempCollisions.forEach(coord => {
-            this.copy[coord.y][coord.x] = -1;
+            this.calculationMap[coord.y][coord.x] = -1;
         });
-        return this.copy
+        return this.calculationMap
     }
 
 
